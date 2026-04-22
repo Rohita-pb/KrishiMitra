@@ -10,8 +10,6 @@ import {
 } from 'recharts';
 import { Loader2, Brain, Layers, Target, TrendingUp, Cpu, Sprout, Printer } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
-import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
 
 const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
 
@@ -20,12 +18,6 @@ const Insights = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const { t } = useLang();
-  
-  const componentRef = useRef();
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: 'SoilAI_Research_Report',
-  });
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -102,9 +94,9 @@ const Insights = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: '1100px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }} className="no-print">
         <button 
-          onClick={handlePrint}
+          onClick={() => window.print()}
           className="glass"
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, color: 'var(--primary)', border: '1px solid var(--primary)', background: 'var(--surface)' }}
         >
@@ -113,7 +105,7 @@ const Insights = () => {
         </button>
       </div>
 
-      <div ref={componentRef} style={{ padding: '1rem' }}>
+      <div style={{ padding: '1rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <h1 className="heading" style={{ fontSize: '2rem' }}>{t.insights_title || 'AI Insights'}</h1>
           <p className="subheading">{t.insights_subtitle || 'View AI Model Metrics & History'}</p>

@@ -151,3 +151,24 @@ body {
   background: rgba(76,175,80,0.2);
   color: var(--text-heading);
 }
+
+/* ─── Print Styles ─────────────────────── */
+@media print {
+  nav, .no-print, button, a.btn-primary {
+    display: none !important;
+  }
+  body, .page-container, .glass {
+    background: white !important;
+    box-shadow: none !important;
+    color: black !important;
+  }
+  .glass {
+    break-inside: avoid;
+    border: 1px solid #ddd !important;
+    margin-bottom: 1rem !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

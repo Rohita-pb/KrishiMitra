@@ -1,6 +1,6 @@
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sprout, CheckCircle, AlertTriangle, ArrowLeft, Droplets, Thermometer, Cloud, Leaf, TrendingUp, Send, Lightbulb, Target } from 'lucide-react';
+import { Sprout, CheckCircle, AlertTriangle, ArrowLeft, Droplets, Thermometer, Cloud, Leaf, TrendingUp, Send, Lightbulb, Target, Printer } from 'lucide-react';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useLang } from '../context/LanguageContext';
 
@@ -52,10 +52,20 @@ const Results = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: '1000px', margin: '0 auto' }}>
 
-      {/* Back link */}
-      <Link to="/app/analyze" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '1.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-        <ArrowLeft size={16} /> New Analysis
-      </Link>
+      {/* Header Actions */}
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <Link to="/app/analyze" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
+          <ArrowLeft size={16} /> New Analysis
+        </Link>
+        <button 
+          onClick={() => window.print()}
+          className="glass"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, color: 'var(--primary)', border: '1px solid var(--primary)', background: 'var(--surface)' }}
+        >
+          <Printer size={16} />
+          Print / Save PDF
+        </button>
+      </div>
 
       {/* ━━━ HERO RESULT ━━━ */}
       <motion.div {...cardAnim(0)} className="glass" style={{ padding: '2.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '2rem', flexWrap: 'wrap', background: qualityBg, borderLeft: `4px solid ${qualityColor}` }}>
