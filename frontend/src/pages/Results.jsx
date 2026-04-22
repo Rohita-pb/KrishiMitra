@@ -2,14 +2,16 @@ import { useLocation, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sprout, CheckCircle, AlertTriangle, ArrowLeft, Droplets, Thermometer, Cloud, Leaf, TrendingUp, Send, Lightbulb, Target } from 'lucide-react';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useLang } from '../context/LanguageContext';
 
 const Results = () => {
   const location = useLocation();
+  const { t } = useLang();
   const { result, input } = location.state || {};
 
   if (!result) return <Navigate to="/app/analyze" />;
 
-  const { soil_quality, recommended_crops, improvement_tips, model_accuracy } = result;
+  const { soil_quality, recommended_crops, improvement_tips, prediction_confidence, crop_confidences, model_accuracy } = result;
 
   const qualityColor = soil_quality === 'Good' ? '#10B981' : soil_quality === 'Moderate' ? '#F59E0B' : '#EF4444';
   const qualityBg = soil_quality === 'Good' ? 'rgba(16,185,129,0.08)' : soil_quality === 'Moderate' ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)';
@@ -77,14 +79,19 @@ const Results = () => {
 
         {/* Quality Text */}
         <div style={{ flex: 1, minWidth: '200px' }}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.3rem' }}>Soil Health Assessment</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.3rem' }}>{t.results_quality}</p>
           <h1 style={{ fontSize: '2.8rem', fontWeight: 900, color: qualityColor, margin: '0 0 0.5rem 0', lineHeight: 1 }}>{soil_quality}</h1>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
             {soil_quality === 'Good' ? 'Excellent conditions for high-yield agriculture.' : soil_quality === 'Moderate' ? 'Soil requires targeted amendments for optimal output.' : 'Critical deficiencies detected. Immediate action needed.'}
           </p>
-          {model_accuracy && (
+          {prediction_confidence != null && (
             <span style={{ display: 'inline-block', marginTop: '0.75rem', background: 'rgba(16,185,129,0.1)', color: '#10B981', padding: '0.3rem 0.8rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 700, border: '1px solid rgba(16,185,129,0.2)' }}>
-              Model Confidence: {(model_accuracy * 100).toFixed(1)}%
+              Prediction Confidence: {(prediction_confidence * 100).toFixed(1)}%
+            </span>
+          )}
+          {model_accuracy && (
+            <span style={{ display: 'inline-block', marginTop: '0.5rem', marginLeft: prediction_confidence != null ? '0.5rem' : '0', background: 'rgba(139,92,246,0.1)', color: '#8B5CF6', padding: '0.3rem 0.8rem', borderRadius: '1rem', fontSize: '0.7rem', fontWeight: 600, border: '1px solid rgba(139,92,246,0.15)' }}>
+              Model Accuracy: {(model_accuracy * 100).toFixed(1)}%
             </span>
           )}
         </div>
@@ -128,7 +135,7 @@ const Results = () => {
         {/* Recommended Crops */}
         <motion.div {...cardAnim(0.25)} className="glass" style={{ padding: '1.5rem' }}>
           <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Sprout size={18} color="#10B981" /> Recommended Crops
+            <Sprout size={18} color="#10B981" /> {t.results_crops}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {recommended_crops.map((crop, idx) => (
@@ -150,6 +157,11 @@ const Results = () => {
                   <span style={{ fontWeight: 700, color: 'var(--text-heading)', textTransform: 'capitalize', fontSize: '1rem' }}>{crop}</span>
                   <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
                     {idx === 0 ? 'Best match for your soil profile' : 'Alternative crop recommendation'}
+                    {crop_confidences && crop_confidences[idx] && (
+                      <span style={{ marginLeft: '0.5rem', fontWeight: 700, color: crop_confidences[idx].confidence >= 0.5 ? '#10B981' : crop_confidences[idx].confidence >= 0.2 ? '#F59E0B' : '#EF4444' }}>
+                        ({(crop_confidences[idx].confidence * 100).toFixed(1)}% confidence)
+                      </span>
+                    )}
                   </p>
                 </div>
               </motion.div>
@@ -161,7 +173,7 @@ const Results = () => {
       {/* ━━━ ACTIONABLE TIPS ━━━ */}
       <motion.div {...cardAnim(0.3)} className="glass" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Lightbulb size={18} color="#F59E0B" /> Actionable Recommendations
+          <Lightbulb size={18} color="#F59E0B" /> {t.results_tips}
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
           {improvement_tips.map((tip, idx) => (

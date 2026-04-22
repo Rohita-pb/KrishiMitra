@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Smartphone, Send, ShieldAlert, CheckCircle, WifiOff, Sprout, Globe, Zap, FileText, XCircle } from 'lucide-react';
+import { Smartphone, Send, ShieldAlert, CheckCircle, WifiOff, Sprout, Globe, Zap, FileText, XCircle, Mic, Check, CheckCheck } from 'lucide-react';
 import axios from 'axios';
 import { translations } from '../utils/i18n';
+import { useLang } from '../context/LanguageContext';
 
 const Communication = () => {
   const [offline, setOffline] = useState(false);
@@ -14,12 +15,24 @@ const Communication = () => {
   const [toast, setToast] = useState('');
   const [toastType, setToastType] = useState('success');
 
-  // Whatsapp State
-  const [waLang, setWaLang] = useState('en');
+  // Global language
+  const { lang, setLang, t } = useLang();
+
+  // Whatsapp State — synced with global lang
+  const [waLang, setWaLang] = useState(lang);
   const tWa = translations[waLang] || translations['en'];
+  const [waMessages, setWaMessages] = useState([]);
+  const [waInput, setWaInput] = useState('');
+  const [waTyping, setWaTyping] = useState(false);
+  const waEndRef = useRef(null);
 
   // Last Analysis Data
   const [lastAnalysis, setLastAnalysis] = useState(null);
+
+  const getTime = () => {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -32,6 +45,17 @@ const Communication = () => {
     };
     fetchLatest();
   }, []);
+
+  // Initialize WhatsApp greeting when language changes
+  useEffect(() => {
+    const t = translations[waLang] || translations['en'];
+    setWaMessages([{ sender: 'bot', text: t.greeting, time: getTime() }]);
+  }, [waLang]);
+
+  // Auto-scroll WhatsApp chat
+  useEffect(() => {
+    waEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [waMessages, waTyping]);
 
   // AI Voice Auto-Fill Listener
   useEffect(() => {
@@ -132,22 +156,75 @@ const Communication = () => {
     }
   };
 
+  // ━━━ WhatsApp Dynamic Chat ━━━
+  const sendWaMessage = async (text = waInput) => {
+    if (!text.trim()) return;
+    const userMsg = text.trim();
+    setWaMessages(prev => [...prev, { sender: 'user', text: userMsg, time: getTime() }]);
+    setWaInput('');
+    setWaTyping(true);
+
+    try {
+      const res = await axios.post('http://localhost:5005/api/chat', {
+        message: userMsg,
+        lang_code: waLang,
+        context: lastAnalysis
+      });
+
+      // Simulate a small delay for realism
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      if (res.data && res.data.success) {
+        const { response } = res.data.data;
+        setWaMessages(prev => [...prev, { sender: 'bot', text: response || '...', time: getTime() }]);
+      } else {
+        setWaMessages(prev => [...prev, { sender: 'bot', text: tWa.bot_default, time: getTime() }]);
+      }
+    } catch (err) {
+      console.error('[WA Chat Error]:', err);
+      setWaMessages(prev => [...prev, { sender: 'bot', text: '⚠️ Connection failed. Try again.', time: getTime() }]);
+    } finally {
+      setWaTyping(false);
+    }
+  };
+
+  const handleWaVoice = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    try {
+      const recognition = new SpeechRecognition();
+      const localeMap = { en:'en-IN', hi:'hi-IN', mr:'mr-IN', ta:'ta-IN', te:'te-IN', bn:'bn-IN', gu:'gu-IN', kn:'kn-IN', pa:'pa-IN' };
+      recognition.lang = localeMap[waLang] || 'en-IN';
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        sendWaMessage(transcript);
+      };
+      recognition.start();
+    } catch(err) { console.error('Mic error', err); }
+  };
+
   const toastColors = {
     success: '#10B981',
     error: '#EF4444',
   };
+
+  const quickBtns = [
+    { label: tWa.quick_soil, icon: '🌱' },
+    { label: tWa.quick_crop, icon: '🌾' },
+    { label: tWa.quick_water, icon: '💧' },
+  ];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: '1000px', margin: '0 auto' }}>
       
       {/* Top Header */}
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h1 className="heading" style={{ fontSize: '2rem' }}>Communication Hub</h1>
-        <p className="subheading" style={{ maxWidth: '600px', margin: '0 auto' }}>Bridging the gap between technology and farmers through accessible communication.</p>
+        <h1 className="heading" style={{ fontSize: '2rem' }}>{t.comm_title}</h1>
+        <p className="subheading" style={{ maxWidth: '600px', margin: '0 auto' }}>{t.comm_subtitle}</p>
         
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
           <button onClick={() => setOffline(!offline)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: offline ? '#EF4444' : 'rgba(239, 68, 68, 0.1)', color: offline ? 'white' : '#EF4444', border: '1px solid #EF4444', borderRadius: '2rem', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}>
-            <WifiOff size={16} /> {offline ? "Offline Active" : "Simulate Offline"}
+            <WifiOff size={16} /> {offline ? t.comm_offline_active : t.comm_simulate_offline}
           </button>
         </div>
       </div>
@@ -162,15 +239,15 @@ const Communication = () => {
               <Smartphone size={22} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Send SMS Alert to Farmer</h2>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>via Fast2SMS API • Real delivery</p>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>{t.comm_sms_title}</h2>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>{t.comm_sms_via}</p>
             </div>
           </div>
           
           <form onSubmit={handleSendSMS} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             
             <div>
-              <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>📱 Phone Number</label>
+              <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>📱 {t.comm_phone}</label>
               <input 
                 id="comm-phone-input"
                 type="tel" value={phone} onChange={e => setPhone(e.target.value)} 
@@ -181,9 +258,9 @@ const Communication = () => {
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <label style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>💬 Message</label>
+                <label style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>💬 {t.comm_message}</label>
                 <button type="button" onClick={handleUseLastAnalysis} style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '1.5rem', padding: '0.3rem 0.75rem', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <Zap size={12} /> Use Last Analysis
+                  <Zap size={12} /> {t.comm_use_analysis}
                 </button>
               </div>
               <textarea 
@@ -198,7 +275,7 @@ const Communication = () => {
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ background: 'rgba(59,130,246,0.06)', padding: '0.75rem', borderRadius: '0.6rem', borderLeft: '3px solid #3B82F6' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
                   <FileText size={12} color="#3B82F6" />
-                  <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: '#64748B', letterSpacing: '0.5px' }}>SMS PREVIEW</span>
+                  <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: '#64748B', letterSpacing: '0.5px' }}>{t.comm_sms_preview}</span>
                 </div>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5, whiteSpace: 'pre-line', margin: 0 }}>{smsMessage}</p>
               </motion.div>
@@ -206,9 +283,9 @@ const Communication = () => {
 
             <button type="submit" disabled={smsSending} className="btn-primary" style={{ width: '100%', background: smsSending ? '#64748B' : 'linear-gradient(135deg, #3B82F6, #1D4ED8)', boxShadow: smsSending ? 'none' : '0 4px 15px rgba(59,130,246,0.3)', opacity: smsSending ? 0.7 : 1 }}>
               {smsSending ? (
-                <><span className="animate-spin" style={{ display: 'inline-block' }}>⏳</span> Sending...</>
+                <><span className="animate-spin" style={{ display: 'inline-block' }}>⏳</span> {t.comm_sending}</>
               ) : (
-                <><Send size={16} /> Send SMS</>
+                <><Send size={16} /> {t.comm_send_sms}</>
               )}
             </button>
           </form>
@@ -223,23 +300,24 @@ const Communication = () => {
           </AnimatePresence>
         </motion.div>
 
-        {/* ━━━ WHATSAPP SIMULATOR ━━━ */}
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="glass" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '550px', background: '#e5ddd5', position: 'relative', overflow: 'hidden', border: '4px solid #1E293B', borderRadius: 'var(--radius)' }}>
+        {/* ━━━ WHATSAPP SIMULATOR (DYNAMIC) ━━━ */}
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} style={{ display: 'flex', flexDirection: 'column', height: '550px', position: 'relative', overflow: 'hidden', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)' }}>
           
           {offline && (
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.92)', zIndex: 20, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '2rem', textAlign: 'center', backdropFilter: 'blur(8px)' }}>
               <ShieldAlert size={48} color="#EF4444" style={{ marginBottom: '1rem' }} />
-              <h3 style={{ fontSize: '1.25rem', color: 'white', marginBottom: '0.5rem', fontWeight: 800 }}>Internet Unavailable</h3>
-              <p style={{ color: '#94A3B8' }}>Chat disabled. Use the SMS panel to reach farmers.</p>
+              <h3 style={{ fontSize: '1.25rem', color: 'white', marginBottom: '0.5rem', fontWeight: 800 }}>{t.comm_offline_title}</h3>
+              <p style={{ color: '#94A3B8' }}>{t.comm_offline_desc}</p>
             </div>
           )}
 
-          <div style={{ background: '#075E54', color: 'white', padding: '0.85rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* WhatsApp Header */}
+          <div style={{ background: '#075E54', color: 'white', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <div style={{ background: 'white', color: '#075E54', padding: '0.4rem', borderRadius: '50%' }}><Sprout size={22} /></div>
+              <div style={{ width: '38px', height: '38px', background: '#25D366', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Sprout size={20} color="white" /></div>
               <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{tWa.whatsapp_title}</h3>
-                <p style={{ fontSize: '0.75rem', opacity: 0.8, margin: 0 }}>online</p>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>{tWa.whatsapp_title}</h3>
+                <p style={{ fontSize: '0.7rem', opacity: 0.85, margin: 0 }}>{waTyping ? '⌨️ typing...' : '🟢 online'}</p>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', background: 'rgba(255,255,255,0.15)', padding: '0.25rem 0.5rem', borderRadius: '1rem' }}>
@@ -258,22 +336,113 @@ const Communication = () => {
             </div>
           </div>
 
-          <div style={{ flex: 1, padding: '1.25rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-             <div style={{ alignSelf: 'flex-start', background: 'white', padding: '0.65rem 0.9rem', borderRadius: '0 0.75rem 0.75rem 0.75rem', boxShadow: '0 1px 2px rgba(0,0,0,0.08)', maxWidth: '85%', fontSize: '0.88rem', color: '#111827' }}>
-               {tWa.greeting} 
-             </div>
-             <div style={{ alignSelf: 'flex-start', background: 'rgba(0,0,0,0.04)', padding: '0.5rem 0.75rem', borderRadius: '0.75rem', fontSize: '0.78rem', fontStyle: 'italic', color: '#6B7280' }}>
-               Use the floating AI chatbot (bottom-right) for interactive conversations!
-             </div>
+          {/* Chat Messages Area */}
+          <div style={{ flex: 1, padding: '0.75rem 0.6rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'200\' height=\'200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cdefs%3E%3Cpattern id=\'p\' width=\'40\' height=\'40\' patternUnits=\'userSpaceOnUse\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'1.5\' fill=\'%23c8c3b8\' opacity=\'0.3\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect fill=\'%23ECE5DD\' width=\'200\' height=\'200\'/%3E%3Crect fill=\'url(%23p)\' width=\'200\' height=\'200\'/%3E%3C/svg%3E")', backgroundSize: '200px' }}>
+            
+            {/* Date Chip */}
+            <div style={{ alignSelf: 'center', background: 'rgba(225,219,208,0.9)', padding: '4px 12px', borderRadius: '8px', fontSize: '0.7rem', color: '#54656F', fontWeight: 600, marginBottom: '6px', boxShadow: '0 1px 1px rgba(0,0,0,0.06)' }}>
+              TODAY
+            </div>
+
+            {waMessages.map((m, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start',
+                  maxWidth: '82%',
+                  marginBottom: '2px',
+                }}
+              >
+                <div style={{
+                  background: m.sender === 'user' ? '#DCF8C6' : '#FFFFFF',
+                  padding: '6px 8px 4px 8px',
+                  borderRadius: m.sender === 'user' ? '8px 0 8px 8px' : '0 8px 8px 8px',
+                  boxShadow: '0 1px 1px rgba(0,0,0,0.08)',
+                  position: 'relative',
+                }}>
+                  <p style={{ fontSize: '0.85rem', color: '#111827', lineHeight: 1.45, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</p>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
+                    <span style={{ fontSize: '0.62rem', color: '#8696A0' }}>{m.time}</span>
+                    {m.sender === 'user' && <CheckCheck size={13} color="#53BDEB" />}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+
+            {/* Typing Indicator */}
+            {waTyping && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{ alignSelf: 'flex-start', background: '#FFFFFF', padding: '10px 16px', borderRadius: '0 8px 8px 8px', boxShadow: '0 1px 1px rgba(0,0,0,0.08)', display: 'flex', gap: '4px', alignItems: 'center' }}
+              >
+                {[0, 1, 2].map(i => (
+                  <span key={i} style={{
+                    width: 7, height: 7, borderRadius: '50%', background: '#8696A0',
+                    animation: `waBounce 1.4s ${i * 0.15}s ease-in-out infinite`,
+                  }} />
+                ))}
+                <style>{`@keyframes waBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }`}</style>
+              </motion.div>
+            )}
+            <div ref={waEndRef} />
           </div>
 
-          <div style={{ background: '#f0f0f0', padding: '0.65rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <div style={{ flex: 1, background: 'white', padding: '0.7rem 1rem', borderRadius: '2rem', color: '#9CA3AF', fontSize: '0.88rem' }}>
-              Type a message...
-            </div>
-            <div style={{ background: '#128C7E', color: 'white', padding: '0.6rem', borderRadius: '50%', cursor: 'pointer' }}>
+          {/* Quick Reply Buttons */}
+          <div style={{ padding: '6px 10px', background: '#F0F0F0', display: 'flex', gap: '6px', overflowX: 'auto', flexShrink: 0, borderTop: '1px solid #E0DAD1' }}>
+            {quickBtns.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => sendWaMessage(q.label)}
+                style={{
+                  background: '#FFFFFF', border: '1px solid #25D366', borderRadius: '20px', padding: '5px 12px',
+                  fontSize: '0.72rem', fontWeight: 600, color: '#075E54', cursor: 'pointer', whiteSpace: 'nowrap',
+                  display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0,
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.target.style.background = '#DCF8C6'; }}
+                onMouseLeave={e => { e.target.style.background = '#FFFFFF'; }}
+              >
+                {q.icon} {q.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Input Bar */}
+          <div style={{ background: '#F0F0F0', padding: '6px 8px', display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
+            <button
+              onClick={handleWaVoice}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#54656F', padding: '6px', display: 'flex', borderRadius: '50%' }}
+              title="Voice input"
+            >
+              <Mic size={20} />
+            </button>
+            <input
+              type="text"
+              value={waInput}
+              onChange={(e) => setWaInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && sendWaMessage()}
+              placeholder={tWa.chat_placeholder}
+              style={{
+                flex: 1, background: '#FFFFFF', padding: '9px 14px', borderRadius: '24px', border: 'none',
+                outline: 'none', color: '#111827', fontSize: '0.88rem', fontFamily: 'inherit',
+              }}
+            />
+            <button
+              onClick={() => sendWaMessage()}
+              disabled={waTyping}
+              style={{
+                width: '38px', height: '38px', borderRadius: '50%', border: 'none',
+                background: waInput.trim() ? '#25D366' : '#128C7E',
+                color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.2s', flexShrink: 0,
+              }}
+            >
               <Send size={16} />
-            </div>
+            </button>
           </div>
         </motion.div>
       </div>

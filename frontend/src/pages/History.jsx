@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Loader2, Calendar } from 'lucide-react';
+import { useLang } from '../context/LanguageContext';
 
 const History = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLang();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -26,14 +28,14 @@ const History = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 className="heading" style={{ fontSize: '2rem' }}>Analysis History</h1>
-        <p className="subheading">Review your previously submitted soil conditions and recommendations.</p>
+        <h1 className="heading" style={{ fontSize: '2rem' }}>{t.history_title}</h1>
+        <p className="subheading">{t.history_subtitle}</p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {history.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }} className="glass">
-            No previous analyses found. Go to the Analyze tab to start!
+            {t.history_empty}
           </div>
         ) : (
           history.map((item, idx) => (
@@ -54,7 +56,7 @@ const History = () => {
                   <span style={{ fontWeight: 600, color: 'var(--secondary)' }}>pH: {item.ph}</span>
                 </div>
                 <div style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>
-                  Recommended: <span style={{ fontWeight: 600, textTransform: 'capitalize' }}>{item.recommended_crops.join(', ')}</span>
+                  {t.history_recommended}: <span style={{ fontWeight: 600, textTransform: 'capitalize' }}>{item.recommended_crops.join(', ')}</span>
                 </div>
               </div>
               <div style={{ 

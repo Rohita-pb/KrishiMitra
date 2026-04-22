@@ -48,7 +48,7 @@ const ParallaxSection = ({ bgUrl, overlayColor, children, id, minHeight = '100vh
 
 /* ──────── Stats Data ──────── */
 const stats = [
-  { value: '98.8%', label: 'Model Accuracy', icon: <BarChart3 size={20} /> },
+  { value: '96%', label: 'Model Accuracy', icon: <BarChart3 size={20} /> },
   { value: '22+',   label: 'Crop Types',     icon: <Sprout size={20} /> },
   { value: '9',     label: 'Languages',      icon: <Globe size={20} /> },
   { value: '<2s',   label: 'Response Time',   icon: <Zap size={20} /> },
@@ -152,7 +152,7 @@ const Landing = () => {
               padding: '0.5rem 1.25rem', borderRadius: '2rem',
               color: 'var(--primary)', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.5px',
             }}>
-              <Zap size={14} /> Ensemble ML • 98.8% Accuracy
+              <Zap size={14} /> Ensemble ML • 96% Accuracy
             </span>
           </motion.div>
 
@@ -288,12 +288,12 @@ const Landing = () => {
             <motion.div {...fadeUp(0.2)} className="glass" style={{ padding: '1.25rem', marginTop: '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)' }}>Model Accuracy</span>
-                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#10B981' }}>98.8%</span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#10B981' }}>96%</span>
               </div>
               <div style={{ height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
                 <motion.div
                   initial={{ width: 0 }}
-                  whileInView={{ width: '98.8%' }}
+                  whileInView={{ width: '96%' }}
                   viewport={{ once: true }}
                   transition={{ duration: 1.5, ease: 'easeOut', delay: 0.3 }}
                   style={{ height: '100%', background: 'linear-gradient(to right, #10B981, #3B82F6)', borderRadius: '4px' }}

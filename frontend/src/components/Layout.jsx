@@ -1,20 +1,33 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Sprout, Activity, History, LineChart, MessageCircle, LogOut, Menu, X } from 'lucide-react';
+import { Sprout, Activity, History, LineChart, MessageCircle, LogOut, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import { useLang } from '../context/LanguageContext';
 import '../index.css';
+
+const langOptions = [
+  { code: 'en', label: 'English' },
+  { code: 'hi', label: 'हिंदी' },
+  { code: 'mr', label: 'मराठी' },
+  { code: 'bn', label: 'বাংলা' },
+  { code: 'te', label: 'తెలుగు' },
+  { code: 'ta', label: 'தமிழ்' },
+  { code: 'gu', label: 'ગુજરાતી' },
+  { code: 'kn', label: 'ಕನ್ನಡ' },
+  { code: 'pa', label: 'ਪੰਜਾਬੀ' },
+];
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { lang, setLang, t } = useLang();
 
   const links = [
-    { name: 'Analyze', path: '/app/analyze', icon: <Activity size={20} />, emoji: '🔬' },
-    { name: 'Results', path: '/app/results', icon: <Sprout size={20} />, emoji: '🌱' },
-    { name: 'Insights', path: '/app/insights', icon: <LineChart size={20} />, emoji: '📊' },
-    { name: 'History', path: '/app/history', icon: <History size={20} />, emoji: '📋' },
-    { name: 'SMS', path: '/app/communication', icon: <MessageCircle size={20} />, emoji: '💬' },
+    { name: t.nav_analyze, path: '/app/analyze', emoji: '🔬' },
+    { name: t.nav_results, path: '/app/results', emoji: '🌱' },
+    { name: t.nav_insights, path: '/app/insights', emoji: '📊' },
+    { name: t.nav_history, path: '/app/history', emoji: '📋' },
+    { name: t.nav_sms, path: '/app/communication', emoji: '💬' },
   ];
 
   const farmer = JSON.parse(localStorage.getItem('soilai_farmer') || '{}');
@@ -79,10 +92,40 @@ const Navbar = () => {
             );
           })}
 
+          {/* Language Selector */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            marginLeft: '0.5rem',
+            background: 'rgba(46,125,50,0.06)',
+            borderRadius: '0.5rem',
+            padding: '0.35rem 0.5rem',
+            border: '1px solid rgba(46,125,50,0.12)',
+          }}>
+            <Globe size={15} color="var(--primary)" />
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--primary)',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                outline: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {langOptions.map(l => (
+                <option key={l.code} value={l.code} style={{ color: '#333' }}>{l.label}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Farmer name + Logout */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: '0.6rem',
-            marginLeft: '0.75rem', paddingLeft: '0.75rem',
+            marginLeft: '0.5rem', paddingLeft: '0.75rem',
             borderLeft: '1px solid var(--border)',
           }}>
             {farmer.name && (
@@ -118,7 +161,7 @@ const Navbar = () => {
                 fontFamily: 'inherit',
               }}
             >
-              <LogOut size={14} /> Logout
+              <LogOut size={14} /> {t.nav_logout}
             </button>
           </div>
         </div>

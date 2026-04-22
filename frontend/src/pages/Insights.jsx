@@ -9,6 +9,7 @@ import {
   RadialBarChart, RadialBar,
 } from 'recharts';
 import { Loader2, Brain, Layers, Target, TrendingUp, Cpu, Sprout } from 'lucide-react';
+import { useLang } from '../context/LanguageContext';
 
 const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
 
@@ -16,6 +17,7 @@ const Insights = () => {
   const [metrics, setMetrics] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLang();
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -93,8 +95,8 @@ const Insights = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: '1100px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 className="heading" style={{ fontSize: '2rem' }}>Algorithm Insights</h1>
-        <p className="subheading">Deep-dive into the ML engine powering your soil recommendations.</p>
+        <h1 className="heading" style={{ fontSize: '2rem' }}>{t.insights_title}</h1>
+        <p className="subheading">{t.insights_subtitle}</p>
       </div>
 
       {/* ━━━ ROW 1: Accuracy Gauge + Feature Radar ━━━ */}
@@ -116,6 +118,47 @@ const Insights = () => {
           <div style={{ marginTop: '-3.5rem', position: 'relative' }}>
             <div style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--primary)' }}>{accuracy}%</div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>VotingClassifier (XGBoost + RF)</p>
+          </div>
+
+          {/* How Accuracy is Calculated */}
+          <div style={{ marginTop: '1.5rem', textAlign: 'left', background: 'var(--surface-alt)', borderRadius: '0.75rem', padding: '1.25rem', borderLeft: '3px solid var(--primary)' }}>
+            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)', margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              📐 How Accuracy is Calculated
+            </h3>
+
+            {/* Dataset Stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              {[
+                { label: 'Total Samples', value: metrics.dataset_info?.total_samples || '4800', color: '#3B82F6' },
+                { label: 'Total Crops', value: metrics.dataset_info?.total_crops || '37', color: '#10B981' },
+                { label: 'Train Set (80%)', value: metrics.dataset_info?.train_samples || '3840', color: '#8B5CF6' },
+                { label: 'Test Set (20%)', value: metrics.dataset_info?.test_samples || '960', color: '#F59E0B' },
+              ].map((stat, i) => (
+                <div key={i} style={{ background: `${stat.color}0A`, border: `1px solid ${stat.color}20`, borderRadius: '0.5rem', padding: '0.5rem 0.6rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: stat.color }}>{stat.value}</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Formula */}
+            <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.3rem', fontFamily: 'inherit', fontWeight: 600 }}>Formula:</div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-heading)', fontWeight: 700 }}>
+                Accuracy = Correct Predictions / Total Test Samples
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 700, marginTop: '0.2rem' }}>
+                = {Math.round(parseFloat(accuracy) / 100 * (metrics.dataset_info?.test_samples || 960))} / {metrics.dataset_info?.test_samples || 960} = {accuracy}%
+              </div>
+            </div>
+
+            {/* Steps explanation */}
+            <ol style={{ padding: '0 0 0 1.2rem', margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.8 }}>
+              <li><strong style={{ color: 'var(--text-heading)' }}>Data Split:</strong> 4800 rows → 80% train (3840) + 20% test (960)</li>
+              <li><strong style={{ color: 'var(--text-heading)' }}>Feature Scaling:</strong> StandardScaler normalizes N, P, K, temp, humidity, pH, rainfall</li>
+              <li><strong style={{ color: 'var(--text-heading)' }}>Ensemble Training:</strong> XGBoost (200 trees) + Random Forest (200 trees) combined via soft-voting</li>
+              <li><strong style={{ color: 'var(--text-heading)' }}>Evaluation:</strong> Model predicts on the unseen 960 test samples; correct predictions ÷ total = accuracy</li>
+            </ol>
           </div>
         </motion.div>
 

@@ -39,7 +39,7 @@ app.post('/predict', async (req, res) => {
     };
     
     const mlResponse = await axios.post(`${ML_SERVICE_URL}/api/predict`, mlPayload);
-    const { soil_quality, recommended_crops, improvement_tips, model_accuracy } = mlResponse.data;
+    const { soil_quality, recommended_crops, improvement_tips, prediction_confidence, crop_confidences, model_accuracy } = mlResponse.data;
 
     // 3. Insert into predictions
     const insertPredictionQuery = `
@@ -58,6 +58,8 @@ app.post('/predict', async (req, res) => {
       soil_quality,
       recommended_crops,
       improvement_tips,
+      prediction_confidence,
+      crop_confidences,
       model_accuracy
     });
 
@@ -340,17 +342,209 @@ app.post('/api/verify-otp', async (req, res) => {
 });
 
 // ━━━━━━━━━━━━━━━ AI CHATBOT ━━━━━━━━━━━━━━━
+
+// Multilingual offline responses for all 9 supported languages
+const offlineTranslations = {
+  en: {
+    greeting: 'Namaste! 🙏 I am KrishiMitra, your farming assistant. Ask me about soil health, crop recommendations, water advice, or fertilizer tips!',
+    default_help: 'I can help you with: 🌱 Soil health analysis, 🌾 Crop recommendations, 💧 Irrigation advice, 🧪 Fertilizer tips. Try asking about any of these!',
+    soil_with_data: (ctx) => `Your latest soil quality is "${ctx.soil_quality}". Nitrogen: ${ctx.n}, Phosphorus: ${ctx.p}, Potassium: ${ctx.k}, pH: ${ctx.ph}. Go to the Insights page for detailed charts!`,
+    soil_no_data: 'Please run a soil analysis first so I can give you detailed advice. Let me take you to the analysis page!',
+    crop_with_data: (crops) => `Based on your latest analysis, the best crops for your soil are: ${crops.join(', ')}. These were recommended by our AI model with 96% accuracy!`,
+    crop_no_data: 'Run a soil analysis to get personalized crop recommendations for your field!',
+    water: 'Water your fields during early morning (5-7 AM) to reduce evaporation losses. For most crops, maintain a 2-3 day irrigation cycle based on soil moisture levels. Drip irrigation saves up to 60% water!',
+    fertilizer: 'Fertilizer tips: Apply Urea for nitrogen deficiency, DAP for phosphorus, and MOP for potassium. Always do a soil test before applying fertilizers. Excess fertilizer can damage crops!',
+    history: 'Let me take you to your analysis history page!',
+    analyze: 'Let me take you to the soil analysis page!',
+    insights: 'Let me show you the AI insights and charts!',
+    sms_sent: (num) => `Sending SMS with your soil report to ${num}!`,
+    sms_page: 'Let me take you to the communication page to send SMS alerts!',
+  },
+  hi: {
+    greeting: 'नमस्ते! 🙏 मैं कृषिमित्र हूँ, आपका खेती सहायक। मिट्टी की सेहत, फसल सुझाव, पानी की सलाह या खाद के बारे में पूछें!',
+    default_help: 'मैं इनमें मदद कर सकता हूँ: 🌱 मिट्टी की जाँच, 🌾 फसल सुझाव, 💧 सिंचाई सलाह, 🧪 खाद के टिप्स। इनमें से कुछ भी पूछें!',
+    soil_with_data: (ctx) => `आपकी मिट्टी की गुणवत्ता "${ctx.soil_quality}" है। नाइट्रोजन: ${ctx.n}, फॉस्फोरस: ${ctx.p}, पोटैशियम: ${ctx.k}, pH: ${ctx.ph}। विस्तृत चार्ट के लिए इनसाइट्स पेज देखें!`,
+    soil_no_data: 'कृपया पहले मिट्टी की जाँच करें ताकि मैं आपको सही सलाह दे सकूँ। चलिए विश्लेषण पेज पर चलते हैं!',
+    crop_with_data: (crops) => `आपकी मिट्टी के लिए सबसे अच्छी फसलें हैं: ${crops.join(', ')}। ये हमारे AI मॉडल द्वारा 96% सटीकता से सुझाई गई हैं!`,
+    crop_no_data: 'अपने खेत के लिए फसल सुझाव पाने के लिए मिट्टी की जाँच करें!',
+    water: 'सुबह जल्दी (5-7 बजे) सिंचाई करें ताकि वाष्पीकरण कम हो। ज़्यादातर फसलों के लिए 2-3 दिन का सिंचाई चक्र रखें। ड्रिप सिंचाई से 60% पानी बचता है!',
+    fertilizer: 'खाद सुझाव: नाइट्रोजन की कमी के लिए यूरिया, फॉस्फोरस के लिए DAP, और पोटैशियम के लिए MOP डालें। खाद डालने से पहले हमेशा मिट्टी जाँच करें!',
+    history: 'चलिए आपके पुराने विश्लेषण देखते हैं!',
+    analyze: 'चलिए मिट्टी विश्लेषण पेज पर चलते हैं!',
+    insights: 'चलिए AI इनसाइट्स और चार्ट्स देखते हैं!',
+    sms_sent: (num) => `${num} पर मिट्टी रिपोर्ट SMS भेज रहे हैं!`,
+    sms_page: 'SMS भेजने के लिए संचार पेज पर चलते हैं!',
+  },
+  mr: {
+    greeting: 'नमस्कार! 🙏 मी कृषिमित्र आहे, तुमचा शेती सहाय्यक. मातीचे आरोग्य, पीक सुचवणी, पाण्याचा सल्ला किंवा खतांबद्दल विचारा!',
+    default_help: 'मी यामध्ये मदत करू शकतो: 🌱 मातीची तपासणी, 🌾 पीक सुचवणी, 💧 सिंचन सल्ला, 🧪 खत टिप्स. यापैकी काहीही विचारा!',
+    soil_with_data: (ctx) => `तुमच्या मातीची गुणवत्ता "${ctx.soil_quality}" आहे. नायट्रोजन: ${ctx.n}, फॉस्फरस: ${ctx.p}, पोटॅशियम: ${ctx.k}, pH: ${ctx.ph}. तपशीलवार चार्टसाठी इनसाइट्स पेज पहा!`,
+    soil_no_data: 'कृपया आधी मातीची तपासणी करा म्हणजे मी तुम्हाला योग्य सल्ला देऊ शकेन. चला विश्लेषण पेजवर जाऊ!',
+    crop_with_data: (crops) => `तुमच्या मातीसाठी सर्वोत्तम पिके: ${crops.join(', ')}. आमच्या AI मॉडेलने 96% अचूकतेने सुचवलेली आहेत!`,
+    crop_no_data: 'पीक सुचवणी मिळवण्यासाठी मातीची तपासणी करा!',
+    water: 'सकाळी लवकर (5-7 वाजता) सिंचन करा म्हणजे बाष्पीभवन कमी होईल. बहुतेक पिकांसाठी 2-3 दिवसांचे सिंचन चक्र ठेवा. ठिबक सिंचनाने 60% पाणी वाचते!',
+    fertilizer: 'खत सल्ला: नायट्रोजनच्या कमतरतेसाठी युरिया, फॉस्फरससाठी DAP आणि पोटॅशियमसाठी MOP वापरा. खत टाकण्यापूर्वी नेहमी माती तपासा!',
+    history: 'चला तुमचा पूर्वीचा विश्लेषण इतिहास पाहू!',
+    analyze: 'चला माती विश्लेषण पेजवर जाऊ!',
+    insights: 'चला AI इनसाइट्स आणि चार्ट्स पाहू!',
+    sms_sent: (num) => `${num} वर माती अहवाल SMS पाठवत आहोत!`,
+    sms_page: 'SMS पाठवण्यासाठी संवाद पेजवर जाऊ!',
+  },
+  ta: {
+    greeting: 'வணக்கம்! 🙏 நான் கிருஷிமித்ரா, உங்கள் வேளாண் உதவியாளர். மண் ஆரோக்கியம், பயிர் பரிந்துரை, நீர் ஆலோசனை அல்லது உரம் பற்றி கேளுங்கள்!',
+    default_help: 'நான் உதவ முடியும்: 🌱 மண் பரிசோதனை, 🌾 பயிர் பரிந்துரை, 💧 நீர்ப்பாசன ஆலோசனை, 🧪 உர குறிப்புகள். இவற்றில் எதையும் கேளுங்கள்!',
+    soil_with_data: (ctx) => `உங்கள் மண் தரம் "${ctx.soil_quality}". நைட்ரஜன்: ${ctx.n}, பாஸ்பரஸ்: ${ctx.p}, பொட்டாசியம்: ${ctx.k}, pH: ${ctx.ph}. விரிவான வரைபடங்களுக்கு இன்சைட்ஸ் பக்கம் பாருங்கள்!`,
+    soil_no_data: 'முதலில் மண் பரிசோதனை செய்யுங்கள், பிறகு நான் சரியான ஆலோசனை தருவேன்!',
+    crop_with_data: (crops) => `உங்கள் மண்ணுக்கு சிறந்த பயிர்கள்: ${crops.join(', ')}. 96% துல்லியத்துடன் AI மூலம் பரிந்துரைக்கப்பட்டவை!`,
+    crop_no_data: 'பயிர் பரிந்துரை பெற மண் பரிசோதனை செய்யுங்கள்!',
+    water: 'காலை (5-7 மணி) நீர்ப்பாசனம் செய்யுங்கள். 2-3 நாள் இடைவெளியில் நீர் பாய்ச்சுங்கள். சொட்டு நீர்ப்பாசனம் 60% நீர் சேமிக்கும்!',
+    fertilizer: 'உர குறிப்புகள்: நைட்ரஜன் குறைபாட்டிற்கு யூரியா, பாஸ்பரஸுக்கு DAP, பொட்டாசியத்திற்கு MOP பயன்படுத்துங்கள். உரம் இடும் முன் மண் பரிசோதனை செய்யுங்கள்!',
+    history: 'உங்கள் முந்தைய பரிசோதனை வரலாற்றைப் பார்ப்போம்!',
+    analyze: 'மண் பரிசோதனை பக்கத்திற்கு செல்வோம்!',
+    insights: 'AI இன்சைட்ஸ் மற்றும் வரைபடங்களைப் பார்ப்போம்!',
+    sms_sent: (num) => `${num} க்கு மண் அறிக்கை SMS அனுப்புகிறோம்!`,
+    sms_page: 'SMS அனுப்ப தகவல் தொடர்பு பக்கத்திற்கு செல்வோம்!',
+  },
+  te: {
+    greeting: 'నమస్కారం! 🙏 నేను కృషిమిత్ర, మీ వ్యవసాయ సహాయకుడు. నేల ఆరోగ్యం, పంట సిఫారసులు, నీటి సలహా లేదా ఎరువుల గురించి అడగండి!',
+    default_help: 'నేను సహాయం చేయగలను: 🌱 నేల పరీక్ష, 🌾 పంట సిఫారసులు, 💧 సాగునీటి సలహా, 🧪 ఎరువుల చిట్కాలు. వీటిలో ఏదైనా అడగండి!',
+    soil_with_data: (ctx) => `మీ నేల నాణ్యత "${ctx.soil_quality}". నైట్రోజన్: ${ctx.n}, ఫాస్ఫరస్: ${ctx.p}, పొటాషియం: ${ctx.k}, pH: ${ctx.ph}. వివరమైన చార్ట్‌ల కోసం ఇన్‌సైట్స్ పేజీ చూడండి!`,
+    soil_no_data: 'ముందుగా నేల పరీక్ష చేయండి, తర్వాత నేను సరైన సలహా ఇస్తాను!',
+    crop_with_data: (crops) => `మీ నేలకు ఉత్తమ పంటలు: ${crops.join(', ')}. 96% ఖచ్చితత్వంతో AI ద్వారా సిఫారసు చేయబడ్డాయి!`,
+    crop_no_data: 'పంట సిఫారసులు పొందడానికి నేల పరీక్ష చేయండి!',
+    water: 'ఉదయం (5-7 గంటలు) నీటి తడి ఇవ్వండి. 2-3 రోజుల విరామంతో నీరు పెట్టండి. బిందు సేద్యం 60% నీటిని ఆదా చేస్తుంది!',
+    fertilizer: 'ఎరువు చిట్కాలు: నైట్రోజన్ లోపానికి యూరియా, ఫాస్ఫరస్‌కు DAP, పొటాషియంకు MOP వాడండి. ఎరువులు వేయడానికి ముందు నేల పరీక్ష చేయండి!',
+    history: 'మీ గత విశ్లేషణ చరిత్ర చూద్దాం!',
+    analyze: 'నేల విశ్లేషణ పేజీకి వెళ్దాం!',
+    insights: 'AI ఇన్‌సైట్స్ మరియు చార్ట్‌లు చూద్దాం!',
+    sms_sent: (num) => `${num} కు నేల నివేదిక SMS పంపుతున్నాం!`,
+    sms_page: 'SMS పంపడానికి కమ్యూనికేషన్ పేజీకి వెళ్దాం!',
+  },
+  bn: {
+    greeting: 'নমস্কার! 🙏 আমি কৃষিমিত্র, আপনার কৃষি সহায়ক। মাটির স্বাস্থ্য, ফসল সুপারিশ, জল পরামর্শ বা সার সম্পর্কে জিজ্ঞাসা করুন!',
+    default_help: 'আমি সাহায্য করতে পারি: 🌱 মাটি পরীক্ষা, 🌾 ফসল সুপারিশ, 💧 সেচ পরামর্শ, 🧪 সার টিপস। এর যেকোনো বিষয়ে জিজ্ঞাসা করুন!',
+    soil_with_data: (ctx) => `আপনার মাটির মান "${ctx.soil_quality}"। নাইট্রোজেন: ${ctx.n}, ফসফরাস: ${ctx.p}, পটাশিয়াম: ${ctx.k}, pH: ${ctx.ph}। বিস্তারিত চার্টের জন্য ইনসাইটস পেজ দেখুন!`,
+    soil_no_data: 'প্রথমে মাটি পরীক্ষা করুন, তারপর আমি সঠিক পরামর্শ দিতে পারব!',
+    crop_with_data: (crops) => `আপনার মাটির জন্য সেরা ফসল: ${crops.join(', ')}। 96% নির্ভুলতায় AI দ্বারা সুপারিশকৃত!`,
+    crop_no_data: 'ফসল সুপারিশ পেতে মাটি পরীক্ষা করুন!',
+    water: 'সকালে (৫-৭টা) সেচ দিন। ২-৩ দিন অন্তর জল দিন। ড্রিপ সেচে ৬০% জল বাঁচে!',
+    fertilizer: 'সার টিপস: নাইট্রোজেনের ঘাটতিতে ইউরিয়া, ফসফরাসে DAP, পটাশিয়ামে MOP ব্যবহার করুন। সার দেওয়ার আগে মাটি পরীক্ষা করুন!',
+    history: 'আপনার আগের বিশ্লেষণ ইতিহাস দেখা যাক!',
+    analyze: 'মাটি বিশ্লেষণ পেজে যাওয়া যাক!',
+    insights: 'AI ইনসাইটস ও চার্ট দেখা যাক!',
+    sms_sent: (num) => `${num} এ মাটি রিপোর্ট SMS পাঠাচ্ছি!`,
+    sms_page: 'SMS পাঠাতে যোগাযোগ পেজে যাওয়া যাক!',
+  },
+  gu: {
+    greeting: 'નમસ્તે! 🙏 હું કૃષિમિત્ર છું, તમારો ખેતી સહાયક. માટીનું સ્વાસ્થ્ય, પાક ભલામણ, પાણી સલાહ કે ખાતર વિશે પૂછો!',
+    default_help: 'હું મદદ કરી શકું છું: 🌱 માટી પરીક્ષણ, 🌾 પાક ભલામણ, 💧 સિંચાઈ સલાહ, 🧪 ખાતર ટિપ્સ. આમાંથી કંઈપણ પૂછો!',
+    soil_with_data: (ctx) => `તમારી માટીની ગુણવત્તા "${ctx.soil_quality}" છે. નાઈટ્રોજન: ${ctx.n}, ફોસ્ફરસ: ${ctx.p}, પોટેશિયમ: ${ctx.k}, pH: ${ctx.ph}. વિગતવાર ચાર્ટ માટે ઇનસાઇટ્સ પેજ જુઓ!`,
+    soil_no_data: 'પહેલા માટી પરીક્ષણ કરો, પછી હું યોગ્ય સલાહ આપી શકીશ!',
+    crop_with_data: (crops) => `તમારી માટી માટે શ્રેષ્ઠ પાક: ${crops.join(', ')}. 96% ચોકસાઈ સાથે AI દ્વારા ભલામણ!`,
+    crop_no_data: 'પાક ભલામણ મેળવવા માટી પરીક્ષણ કરો!',
+    water: 'સવારે (5-7 વાગે) સિંચાઈ કરો. 2-3 દિવસના અંતરે પાણી આપો. ટપક સિંચાઈથી 60% પાણી બચે છે!',
+    fertilizer: 'ખાતર ટિપ્સ: નાઈટ્રોજનની ઉણપ માટે યુરિયા, ફોસ્ફરસ માટે DAP, પોટેશિયમ માટે MOP વાપરો. ખાતર નાખતા પહેલા માટી પરીક્ષણ કરો!',
+    history: 'ચાલો તમારો અગાઉનો વિશ્લેષણ ઇતિહાસ જોઈએ!',
+    analyze: 'ચાલો માટી વિશ્લેષણ પેજ પર જઈએ!',
+    insights: 'ચાલો AI ઇનસાઇટ્સ અને ચાર્ટ્સ જોઈએ!',
+    sms_sent: (num) => `${num} પર માટી રિપોર્ટ SMS મોકલી રહ્યા છીએ!`,
+    sms_page: 'SMS મોકલવા કોમ્યુનિકેશન પેજ પર જઈએ!',
+  },
+  kn: {
+    greeting: 'ನಮಸ್ಕಾರ! 🙏 ನಾನು ಕೃಷಿಮಿತ್ರ, ನಿಮ್ಮ ಕೃಷಿ ಸಹಾಯಕ. ಮಣ್ಣಿನ ಆರೋಗ್ಯ, ಬೆಳೆ ಶಿಫಾರಸು, ನೀರಿನ ಸಲಹೆ ಅಥವಾ ಗೊಬ್ಬರದ ಬಗ್ಗೆ ಕೇಳಿ!',
+    default_help: 'ನಾನು ಸಹಾಯ ಮಾಡಬಲ್ಲೆ: 🌱 ಮಣ್ಣಿನ ಪರೀಕ್ಷೆ, 🌾 ಬೆಳೆ ಶಿಫಾರಸು, 💧 ನೀರಾವರಿ ಸಲಹೆ, 🧪 ಗೊಬ್ಬರ ಸಲಹೆ. ಇವುಗಳಲ್ಲಿ ಯಾವುದಾದರೂ ಕೇಳಿ!',
+    soil_with_data: (ctx) => `ನಿಮ್ಮ ಮಣ್ಣಿನ ಗುಣಮಟ್ಟ "${ctx.soil_quality}". ನೈಟ್ರೋಜನ್: ${ctx.n}, ಫಾಸ್ಫರಸ್: ${ctx.p}, ಪೊಟ್ಯಾಸಿಯಮ್: ${ctx.k}, pH: ${ctx.ph}. ವಿವರವಾದ ಚಾರ್ಟ್‌ಗಳಿಗೆ ಇನ್‌ಸೈಟ್ಸ್ ಪುಟ ನೋಡಿ!`,
+    soil_no_data: 'ಮೊದಲು ಮಣ್ಣಿನ ಪರೀಕ್ಷೆ ಮಾಡಿ, ನಂತರ ಸರಿಯಾದ ಸಲಹೆ ನೀಡುತ್ತೇನೆ!',
+    crop_with_data: (crops) => `ನಿಮ್ಮ ಮಣ್ಣಿಗೆ ಉತ್ತಮ ಬೆಳೆಗಳು: ${crops.join(', ')}. 96% ನಿಖರತೆಯೊಂದಿಗೆ AI ಶಿಫಾರಸು!`,
+    crop_no_data: 'ಬೆಳೆ ಶಿಫಾರಸು ಪಡೆಯಲು ಮಣ್ಣಿನ ಪರೀಕ್ಷೆ ಮಾಡಿ!',
+    water: 'ಬೆಳಿಗ್ಗೆ (5-7 ಗಂಟೆ) ನೀರಾವರಿ ಮಾಡಿ. 2-3 ದಿನಗಳ ಮಧ್ಯಂತರದಲ್ಲಿ ನೀರು ಹಾಕಿ. ಹನಿ ನೀರಾವರಿ 60% ನೀರು ಉಳಿಸುತ್ತದೆ!',
+    fertilizer: 'ಗೊಬ್ಬರ ಸಲಹೆ: ನೈಟ್ರೋಜನ್ ಕೊರತೆಗೆ ಯೂರಿಯಾ, ಫಾಸ್ಫರಸ್‌ಗೆ DAP, ಪೊಟ್ಯಾಸಿಯಮ್‌ಗೆ MOP ಬಳಸಿ. ಗೊಬ್ಬರ ಹಾಕುವ ಮೊದಲು ಮಣ್ಣು ಪರೀಕ್ಷಿಸಿ!',
+    history: 'ನಿಮ್ಮ ಹಿಂದಿನ ವಿಶ್ಲೇಷಣೆ ಇತಿಹಾಸ ನೋಡೋಣ!',
+    analyze: 'ಮಣ್ಣಿನ ವಿಶ್ಲೇಷಣೆ ಪುಟಕ್ಕೆ ಹೋಗೋಣ!',
+    insights: 'AI ಇನ್‌ಸೈಟ್ಸ್ ಮತ್ತು ಚಾರ್ಟ್‌ಗಳನ್ನು ನೋಡೋಣ!',
+    sms_sent: (num) => `${num} ಗೆ ಮಣ್ಣಿನ ವರದಿ SMS ಕಳುಹಿಸುತ್ತಿದ್ದೇವೆ!`,
+    sms_page: 'SMS ಕಳುಹಿಸಲು ಸಂವಹನ ಪುಟಕ್ಕೆ ಹೋಗೋಣ!',
+  },
+  pa: {
+    greeting: 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ! 🙏 ਮੈਂ ਕ੍ਰਿਸ਼ੀਮਿੱਤਰ ਹਾਂ, ਤੁਹਾਡਾ ਖੇਤੀ ਸਹਾਇਕ। ਮਿੱਟੀ ਦੀ ਸਿਹਤ, ਫ਼ਸਲ ਸੁਝਾਅ, ਪਾਣੀ ਦੀ ਸਲਾਹ ਜਾਂ ਖਾਦ ਬਾਰੇ ਪੁੱਛੋ!',
+    default_help: 'ਮੈਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ: 🌱 ਮਿੱਟੀ ਜਾਂਚ, 🌾 ਫ਼ਸਲ ਸੁਝਾਅ, 💧 ਸਿੰਚਾਈ ਸਲਾਹ, 🧪 ਖਾਦ ਟਿੱਪਸ। ਇਨ੍ਹਾਂ ਵਿੱਚੋਂ ਕੁਝ ਵੀ ਪੁੱਛੋ!',
+    soil_with_data: (ctx) => `ਤੁਹਾਡੀ ਮਿੱਟੀ ਦੀ ਗੁਣਵੱਤਾ "${ctx.soil_quality}" ਹੈ। ਨਾਈਟ੍ਰੋਜਨ: ${ctx.n}, ਫ਼ਾਸਫ਼ੋਰਸ: ${ctx.p}, ਪੋਟਾਸ਼ੀਅਮ: ${ctx.k}, pH: ${ctx.ph}। ਵਿਸਤਾਰ ਨਾਲ ਚਾਰਟ ਲਈ ਇਨਸਾਈਟਸ ਪੇਜ ਵੇਖੋ!`,
+    soil_no_data: 'ਪਹਿਲਾਂ ਮਿੱਟੀ ਦੀ ਜਾਂਚ ਕਰੋ, ਫਿਰ ਮੈਂ ਤੁਹਾਨੂੰ ਸਹੀ ਸਲਾਹ ਦੇ ਸਕਾਂਗਾ!',
+    crop_with_data: (crops) => `ਤੁਹਾਡੀ ਮਿੱਟੀ ਲਈ ਸਭ ਤੋਂ ਵਧੀਆ ਫ਼ਸਲਾਂ: ${crops.join(', ')}। 96% ਸ਼ੁੱਧਤਾ ਨਾਲ AI ਵੱਲੋਂ ਸੁਝਾਈਆਂ!`,
+    crop_no_data: 'ਫ਼ਸਲ ਸੁਝਾਅ ਲੈਣ ਲਈ ਮਿੱਟੀ ਦੀ ਜਾਂਚ ਕਰੋ!',
+    water: 'ਸਵੇਰੇ (5-7 ਵਜੇ) ਸਿੰਚਾਈ ਕਰੋ। 2-3 ਦਿਨਾਂ ਦੇ ਅੰਤਰ ਤੇ ਪਾਣੀ ਦਿਓ। ਤੁਪਕਾ ਸਿੰਚਾਈ ਨਾਲ 60% ਪਾਣੀ ਬਚਦਾ ਹੈ!',
+    fertilizer: 'ਖਾਦ ਟਿੱਪਸ: ਨਾਈਟ੍ਰੋਜਨ ਦੀ ਘਾਟ ਲਈ ਯੂਰੀਆ, ਫ਼ਾਸਫ਼ੋਰਸ ਲਈ DAP, ਪੋਟਾਸ਼ੀਅਮ ਲਈ MOP ਵਰਤੋ। ਖਾਦ ਪਾਉਣ ਤੋਂ ਪਹਿਲਾਂ ਮਿੱਟੀ ਜਾਂਚ ਕਰੋ!',
+    history: 'ਚਲੋ ਤੁਹਾਡਾ ਪੁਰਾਣਾ ਵਿਸ਼ਲੇਸ਼ਣ ਇਤਿਹਾਸ ਵੇਖੀਏ!',
+    analyze: 'ਚਲੋ ਮਿੱਟੀ ਵਿਸ਼ਲੇਸ਼ਣ ਪੇਜ ਤੇ ਚੱਲੀਏ!',
+    insights: 'ਚਲੋ AI ਇਨਸਾਈਟਸ ਅਤੇ ਚਾਰਟ ਵੇਖੀਏ!',
+    sms_sent: (num) => `${num} ਤੇ ਮਿੱਟੀ ਰਿਪੋਰਟ SMS ਭੇਜ ਰਹੇ ਹਾਂ!`,
+    sms_page: 'SMS ਭੇਜਣ ਲਈ ਸੰਚਾਰ ਪੇਜ ਤੇ ਚੱਲੀਏ!',
+  },
+};
+
+// Offline fallback when Gemini quota is exhausted — now multilingual
+function getOfflineResponse(message, context, lang_code) {
+  const msg = (message || '').toLowerCase();
+  const t = offlineTranslations[lang_code] || offlineTranslations['en'];
+  let response = '';
+  let action = 'none';
+
+  if (msg.includes('soil') || msg.includes('mitti') || msg.includes('health') || msg.includes('माती') || msg.includes('मिट्टी') || msg.includes('மண்') || msg.includes('নেটি') || msg.includes('మట్టి') || msg.includes('માટી') || msg.includes('ಮಣ್ಣ') || msg.includes('ਮਿੱਟੀ') || msg.includes('মাটি')) {
+    if (context && context.soil_quality) {
+      response = t.soil_with_data(context);
+      action = 'navigate_insights';
+    } else {
+      response = t.soil_no_data;
+      action = 'navigate_analyze';
+    }
+  } else if (msg.includes('crop') || msg.includes('fasal') || msg.includes('grow') || msg.includes('recommend') || msg.includes('पीक') || msg.includes('फसल') || msg.includes('பயிர்') || msg.includes('পাক') || msg.includes('పంట') || msg.includes('પાક') || msg.includes('ಬೆಳೆ') || msg.includes('ਫ਼ਸਲ') || msg.includes('ফসল')) {
+    if (context && context.recommended_crops) {
+      const crops = typeof context.recommended_crops === 'string' ? JSON.parse(context.recommended_crops) : context.recommended_crops;
+      response = t.crop_with_data(crops);
+    } else {
+      response = t.crop_no_data;
+      action = 'navigate_analyze';
+    }
+  } else if (msg.includes('water') || msg.includes('irrigation') || msg.includes('pani') || msg.includes('sinchai') || msg.includes('पानी') || msg.includes('सिंचाई') || msg.includes('পানি') || msg.includes('நீர்') || msg.includes('నీరు') || msg.includes('પાણી') || msg.includes('ನೀರು') || msg.includes('ਪਾਣੀ') || msg.includes('সেচ') || msg.includes('सिंचन')) {
+    response = t.water;
+  } else if (msg.includes('fertilizer') || msg.includes('khad') || msg.includes('urea') || msg.includes('खाद') || msg.includes('खत') || msg.includes('உரம்') || msg.includes('ఎరువు') || msg.includes('ખાતર') || msg.includes('ಗೊಬ್ಬರ') || msg.includes('ਖਾਦ') || msg.includes('সার')) {
+    response = t.fertilizer;
+  } else if (msg.includes('history') || msg.includes('previous') || msg.includes('past') || msg.includes('इतिहास') || msg.includes('पूर्वीचा') || msg.includes('முந்தைய') || msg.includes('ইতিহাস') || msg.includes('చరిత్ర') || msg.includes('ઇતિહાસ') || msg.includes('ಇತಿಹಾಸ') || msg.includes('ਇਤਿਹਾਸ')) {
+    response = t.history;
+    action = 'navigate_history';
+  } else if (msg.includes('analyze') || msg.includes('test') || msg.includes('check') || msg.includes('विश्लेषण') || msg.includes('तपासणी') || msg.includes('பரிசோதனை') || msg.includes('পরীক্ষা') || msg.includes('పరీక్ష') || msg.includes('પરીક્ષણ') || msg.includes('ಪರೀಕ್ಷೆ') || msg.includes('ਜਾਂਚ')) {
+    response = t.analyze;
+    action = 'navigate_analyze';
+  } else if (msg.includes('insight') || msg.includes('chart') || msg.includes('graph') || msg.includes('चार्ट') || msg.includes('ग्राफ') || msg.includes('வரைபடம்') || msg.includes('চার্ট') || msg.includes('చార్ట') || msg.includes('ચાર્ટ') || msg.includes('ಚಾರ್ಟ') || msg.includes('ਚਾਰਟ')) {
+    response = t.insights;
+    action = 'navigate_insights';
+  } else if (msg.includes('sms') || msg.includes('send') || msg.includes('message') || msg.includes('number') || msg.includes('भेज') || msg.includes('पाठव') || msg.includes('அனுப்பு') || msg.includes('পাঠা') || msg.includes('పంపు') || msg.includes('મોકલ') || msg.includes('ಕಳುಹಿಸ') || msg.includes('ਭੇਜ')) {
+    const phoneMatch = msg.match(/(\d{10})/);
+    if (phoneMatch) {
+      response = t.sms_sent(phoneMatch[1]);
+      action = `send_sms:${phoneMatch[1]}`;
+    } else {
+      response = t.sms_page;
+    }
+  } else if (msg.includes('hello') || msg.includes('hi') || msg.includes('namaste') || msg.includes('hey') || msg.includes('नमस्ते') || msg.includes('नमस्कार') || msg.includes('வணக்கம்') || msg.includes('নমস্কার') || msg.includes('నమస్కారం') || msg.includes('નમસ્તે') || msg.includes('ನಮಸ್ಕಾರ') || msg.includes('ਸਤ')) {
+    response = t.greeting;
+  } else {
+    response = t.default_help;
+  }
+  return { response, action };
+}
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, lang_code, context } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server. Please add it to your .env file.' });
+      const fallback = getOfflineResponse(message, context, lang_code);
+      return res.json({ success: true, data: fallback });
     }
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Build context string from the passed context object (which is a history reading)
     const contextString = context 
       ? `Farmer's latest soil reading:
          Nitrogen: ${context.n}, Phosphorus: ${context.p}, Potassium: ${context.k}, pH: ${context.ph}
@@ -382,7 +576,7 @@ Here is the farmer's current context:
 ${contextString}`;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents: [
             { role: 'user', parts: [{ text: message }] }
         ],
@@ -401,8 +595,11 @@ ${contextString}`;
     });
 
   } catch (error) {
-    console.error('[CHAT API ERROR]:', error.message);
-    res.status(500).json({ success: false, error: 'Failure in KrishiMitra AI response.' });
+    console.error('[CHAT API ERROR]:', error.message || error);
+    // Graceful fallback — chatbot still works in offline mode with multilingual support
+    const { message, lang_code, context } = req.body;
+    const fallback = getOfflineResponse(message || '', context, lang_code);
+    res.json({ success: true, data: fallback });
   }
 });
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { LanguageProvider } from './context/LanguageContext';
 import Layout from './components/Layout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -21,26 +22,28 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AIChatbot />
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        
-        <Route path="/app" element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<Navigate to="/app/analyze" replace />} />
-          <Route path="analyze" element={<Analyze />} />
-          <Route path="results" element={<Results />} />
-          <Route path="insights" element={<Insights />} />
-          <Route path="history" element={<History />} />
-          <Route path="communication" element={<Communication />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <AIChatbot />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          
+          <Route path="/app" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Navigate to="/app/analyze" replace />} />
+            <Route path="analyze" element={<Analyze />} />
+            <Route path="results" element={<Results />} />
+            <Route path="insights" element={<Insights />} />
+            <Route path="history" element={<History />} />
+            <Route path="communication" element={<Communication />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }
 
