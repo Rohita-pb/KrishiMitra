@@ -8,8 +8,10 @@ import {
   AreaChart, Area,
   RadialBarChart, RadialBar,
 } from 'recharts';
-import { Loader2, Brain, Layers, Target, TrendingUp, Cpu, Sprout } from 'lucide-react';
+import { Loader2, Brain, Layers, Target, TrendingUp, Cpu, Sprout, Printer } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
 
@@ -18,6 +20,12 @@ const Insights = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const { t } = useLang();
+  
+  const componentRef = useRef();
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: 'SoilAI_Research_Report',
+  });
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -94,10 +102,22 @@ const Insights = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: '1100px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 className="heading" style={{ fontSize: '2rem' }}>{t.insights_title}</h1>
-        <p className="subheading">{t.insights_subtitle}</p>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <button 
+          onClick={handlePrint}
+          className="glass"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, color: 'var(--primary)', border: '1px solid var(--primary)', background: 'var(--surface)' }}
+        >
+          <Printer size={18} />
+          Print / Download PDF
+        </button>
       </div>
+
+      <div ref={componentRef} style={{ padding: '1rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <h1 className="heading" style={{ fontSize: '2rem' }}>{t.insights_title || 'AI Insights'}</h1>
+          <p className="subheading">{t.insights_subtitle || 'View AI Model Metrics & History'}</p>
+        </div>
 
       {/* ━━━ ROW 1: Accuracy Gauge + Feature Radar ━━━ */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
@@ -327,6 +347,7 @@ const Insights = () => {
         </motion.div>
       </div>
 
+      </div>
     </motion.div>
   );
 };

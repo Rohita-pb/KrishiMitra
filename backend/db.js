@@ -8,6 +8,17 @@ const pool = new Pool({
 const initDB = async () => {
   try {
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS farmers (
+        id SERIAL PRIMARY KEY,
+        phone VARCHAR(15) UNIQUE NOT NULL,
+        name VARCHAR(100),
+        village VARCHAR(150),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS soil_data (
         id SERIAL PRIMARY KEY,
         n FLOAT NOT NULL,
@@ -18,6 +29,7 @@ const initDB = async () => {
         temperature FLOAT NOT NULL,
         humidity FLOAT NOT NULL,
         rainfall FLOAT NOT NULL,
+        farmer_id INTEGER REFERENCES farmers(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -41,17 +53,6 @@ const initDB = async () => {
         version VARCHAR(50) NOT NULL,
         accuracy FLOAT NOT NULL,
         training_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS farmers (
-        id SERIAL PRIMARY KEY,
-        phone VARCHAR(15) UNIQUE NOT NULL,
-        name VARCHAR(100),
-        village VARCHAR(150),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
