@@ -174,7 +174,7 @@ const regionPresets = {
 
 const Analyze = () => {
   const navigate = useNavigate();
-  const { t } = useLang();
+  const { t, tLocal } = useLang();
   const [loading, setLoading] = useState(false);
   const [activeParam, setActiveParam] = useState(null);
   const [selectedCrop, setSelectedCrop] = useState('');
@@ -231,7 +231,7 @@ const Analyze = () => {
       navigate('/app/results', { state: { result: response.data, input: formData } });
     } catch (error) {
       console.error(error);
-      alert('Error fetching prediction. Ensure the backend is running.');
+      alert(tLocal('Error fetching prediction. Ensure the backend is running.'));
     } finally {
       setLoading(false);
     }
@@ -259,7 +259,7 @@ const Analyze = () => {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', padding: '0.4rem 1rem', borderRadius: '2rem', color: '#10B981', fontWeight: 600, fontSize: '0.8rem', marginBottom: '1rem' }}>
-          <Cpu size={14} /> ML-Powered Analysis
+          <Cpu size={14} /> {tLocal('ML-Powered Analysis')}
         </div>
         <h1 className="heading" style={{ fontSize: '2.2rem' }}>{t.analyze_title}</h1>
         <p className="subheading" style={{ maxWidth: '550px', margin: '0 auto' }}>{t.analyze_subtitle}</p>
@@ -279,8 +279,8 @@ const Analyze = () => {
               <MapPin size={18} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>Quick Fill — Region Presets</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Select your Indian region to auto-fill local soil & climate conditions</p>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('Quick Fill — Region Presets')}</h3>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>{tLocal('Select your Indian region to auto-fill local soil & climate conditions')}</p>
             </div>
           </div>
 
@@ -353,7 +353,7 @@ const Analyze = () => {
 
                 {/* Best Crops for Region */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Best Crops:</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{tLocal('Best Crops:')}</span>
                   {regionPresets[selectedRegion].crops.map((crop, i) => (
                     <span key={i} style={{
                       background: 'rgba(16,185,129,0.08)', color: '#059669',
@@ -382,8 +382,8 @@ const Analyze = () => {
               <Sprout size={18} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>Quick Fill — Crop Presets</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Select a crop to auto-fill average soil & climate values</p>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('Quick Fill — Crop Presets')}</h3>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>{tLocal('Select a crop to auto-fill average soil & climate values')}</p>
             </div>
           </div>
 
@@ -450,7 +450,7 @@ const Analyze = () => {
                 exit={{ opacity: 0, y: 10 }}
                 style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
               >
-                ✅ Values loaded for {presetApplied}
+                ✅ {tLocal(`Values loaded for ${presetApplied}`)}
               </motion.div>
             )}
           </AnimatePresence>
@@ -496,7 +496,7 @@ const Analyze = () => {
                       <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${param.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: param.color }}>
                         {param.icon}
                       </div>
-                      <span style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '0.92rem' }}>{param.label}</span>
+                      <span style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '0.92rem' }}>{tLocal(param.label)}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                       <span style={{ fontSize: '1.5rem', fontWeight: 900, color: param.color }}>{formData[param.name]}</span>

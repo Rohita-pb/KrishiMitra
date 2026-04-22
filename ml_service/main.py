@@ -130,35 +130,35 @@ def check_soil_health(data: SoilInput):
     # Simple rule-based logic for Soil parameters
     # Ideal ranges: N (50-150), P (16-45), K (120-240), pH (6-7.5), Moisture (20-80)
     if data.n < 50:
-        tips.append("Add Nitrogen-rich fertilizers like Urea.")
+        tips.append("Low Nitrogen: Add Nitrogen-rich fertilizers like Urea. Home Remedy: Mix coffee grounds, composted manure, or blood meal into the soil.")
         issues += 1
     elif data.n > 150:
-        tips.append("Reduce Nitrogen fertilizers; consider planting nitrogen-absorbing catch crops.")
+        tips.append("High Nitrogen: Reduce N-fertilizers; consider nitrogen-absorbing catch crops. Home Remedy: Add sawdust or wood chips to bind excess nitrogen.")
         issues += 1
         
     if data.p < 16:
-        tips.append("Add phosphorus-rich fertilizers like Bone Meal.")
+        tips.append("Low Phosphorus: Add phosphorus-rich fertilizers like Bone Meal. Home Remedy: Bury banana peels or use homemade bone meal.")
         issues += 1
     elif data.p > 45:
-        tips.append("Phosphorus is high; avoid adding P-fertilizers.")
+        tips.append("High Phosphorus: Avoid adding P-fertilizers. Home Remedy: Plant nitrogen-fixing legumes to naturally balance the soil.")
         issues += 1
         
     if data.k < 120:
-        tips.append("Add Potassium (Potash) to improve root growth and crop yield.")
+        tips.append("Low Potassium: Add Potash to improve root growth. Home Remedy: Use wood ash (in moderation) or seaweed extract/kelp meal.")
         issues += 1
         
     if data.ph < 6.0:
-        tips.append("Soil is acidic. Apply agricultural lime (crushed limestone).")
+        tips.append("Acidic Soil: Apply agricultural lime. Home Remedy: Mix crushed eggshells or wood ash into the topsoil to naturally raise pH.")
         issues += 1
     elif data.ph > 7.5:
-        tips.append("Soil is alkaline. Add organic matter like compost or elemental sulfur.")
+        tips.append("Alkaline Soil: Add elemental sulfur. Home Remedy: Add pine needles, peat moss, or coffee grounds to slowly lower the pH.")
         issues += 1
         
     if data.moisture < 20:
-        tips.append("Soil is too dry. Increase irrigation frequency and use mulch.")
+        tips.append("Dry Soil: Increase irrigation frequency. Home Remedy: Use organic mulch (straw, dry leaves) to retain moisture and reduce evaporation.")
         issues += 1
     elif data.moisture > 80:
-        tips.append("Soil is waterlogged. Improve drainage systems.")
+        tips.append("Waterlogged Soil: Improve drainage systems. Home Remedy: Mix sand or organic compost into the soil to improve aeration and prevent root rot.")
         issues += 1
 
     if issues == 0:

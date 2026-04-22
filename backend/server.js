@@ -569,8 +569,8 @@ Available actions:
 - "navigate_history": use when they want to see their past history or previous readings
 - "navigate_insights": use when they want to see insights or charts
 - "navigate_communication": use when they want to go to the SMS or communication page but haven't provided a valid phone number.
-- "fill_phone:<NUMBER>": use when the user asks you to enter or type their mobile number. Extract the number and append it. Example: "fill_phone:9920602745". IMPORTANT: Extract ALL digits with NO SPACES. Do not enforce a 10-digit limit.
-- "send_sms:<NUMBER>": use when the user asks to send an SMS, send soil report, send analysis, or send results to a phone number. Extract the number. IMPORTANT: Extract ALL digits with NO SPACES. Do not enforce a 10-digit limit. Example: "send_sms:9920602745".
+- "fill_phone:<NUMBER>": use when the user asks you to enter or type their mobile number. Extract the number and append it. Example: "fill_phone:9920602745". IMPORTANT: Extract ALL digits with NO SPACES. Do not enforce a 10-digit limit. This applies to ALL languages (e.g., 'mera number 9920602745 hai'). If the number is spoken as words, convert it to digits.
+- "send_sms:<NUMBER>": use when the user asks to send an SMS, send soil report, send analysis, or send results to a phone number. Extract the number. IMPORTANT: Extract ALL digits with NO SPACES. Do not enforce a 10-digit limit. Example: "send_sms:9920602745". This applies to ALL languages (e.g. '9920602745 par sms bhejo', 'is number par report bhej do'). If spoken in words, convert to digits.
 - "none": use for all other queries, questions, or conversations where navigation or filling is not explicitly requested.
 
 You MUST respond with a valid JSON document containing exactly two keys: "response" (your conversational reply in the correct language) and "action" (one of the action enum strings above).

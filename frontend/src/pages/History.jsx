@@ -7,7 +7,7 @@ import { useLang } from '../context/LanguageContext';
 const History = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { t } = useLang();
+  const { t, tLocal } = useLang();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -64,7 +64,7 @@ const History = () => {
                 color: item.soil_quality === 'Good' ? '#10B981' : item.soil_quality === 'Moderate' ? '#F59E0B' : '#EF4444',
                 padding: '0.5rem 1rem', borderRadius: '2rem', fontWeight: 700, fontSize: '0.9rem'
               }}>
-                {item.soil_quality}
+                {tLocal(item.soil_quality)}
               </div>
             </motion.div>
           ))

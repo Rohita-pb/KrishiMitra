@@ -17,7 +17,7 @@ const Insights = () => {
   const [metrics, setMetrics] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { t } = useLang();
+  const { t, tLocal } = useLang();
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -101,7 +101,7 @@ const Insights = () => {
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, color: 'var(--primary)', border: '1px solid var(--primary)', background: 'var(--surface)' }}
         >
           <Printer size={18} />
-          Print / Download PDF
+          {tLocal('Print / Download PDF')}
         </button>
       </div>
 
@@ -118,7 +118,7 @@ const Insights = () => {
         <motion.div {...cardAnim(0)} className="glass" style={{ padding: '2rem', textAlign: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '1rem' }}>
             <Target size={20} color="var(--primary)" />
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>Model Accuracy</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('Model Accuracy')}</h2>
           </div>
           <div style={{ width: '100%', height: 220 }}>
             <ResponsiveContainer>
@@ -129,22 +129,22 @@ const Insights = () => {
           </div>
           <div style={{ marginTop: '-3.5rem', position: 'relative' }}>
             <div style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--primary)' }}>{accuracy}%</div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>VotingClassifier (XGBoost + RF)</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>{tLocal('VotingClassifier (XGBoost + RF)')}</p>
           </div>
 
           {/* How Accuracy is Calculated */}
           <div style={{ marginTop: '1.5rem', textAlign: 'left', background: 'var(--surface-alt)', borderRadius: '0.75rem', padding: '1.25rem', borderLeft: '3px solid var(--primary)' }}>
             <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)', margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              📐 How Accuracy is Calculated
+              📐 {tLocal('How Accuracy is Calculated')}
             </h3>
 
             {/* Dataset Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
               {[
-                { label: 'Total Samples', value: metrics.dataset_info?.total_samples || '4800', color: '#3B82F6' },
-                { label: 'Total Crops', value: metrics.dataset_info?.total_crops || '37', color: '#10B981' },
-                { label: 'Train Set (80%)', value: metrics.dataset_info?.train_samples || '3840', color: '#8B5CF6' },
-                { label: 'Test Set (20%)', value: metrics.dataset_info?.test_samples || '960', color: '#F59E0B' },
+                { label: tLocal('Total Samples'), value: metrics.dataset_info?.total_samples || '4800', color: '#3B82F6' },
+                { label: tLocal('Total Crops'), value: metrics.dataset_info?.total_crops || '37', color: '#10B981' },
+                { label: tLocal('Train Set (80%)'), value: metrics.dataset_info?.train_samples || '3840', color: '#8B5CF6' },
+                { label: tLocal('Test Set (20%)'), value: metrics.dataset_info?.test_samples || '960', color: '#F59E0B' },
               ].map((stat, i) => (
                 <div key={i} style={{ background: `${stat.color}0A`, border: `1px solid ${stat.color}20`, borderRadius: '0.5rem', padding: '0.5rem 0.6rem', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.1rem', fontWeight: 800, color: stat.color }}>{stat.value}</div>
@@ -155,9 +155,9 @@ const Insights = () => {
 
             {/* Formula */}
             <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.3rem', fontFamily: 'inherit', fontWeight: 600 }}>Formula:</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.3rem', fontFamily: 'inherit', fontWeight: 600 }}>{tLocal('Formula:')}</div>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-heading)', fontWeight: 700 }}>
-                Accuracy = Correct Predictions / Total Test Samples
+                {tLocal('Accuracy = Correct Predictions / Total Test Samples')}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 700, marginTop: '0.2rem' }}>
                 = {Math.round(parseFloat(accuracy) / 100 * (metrics.dataset_info?.test_samples || 960))} / {metrics.dataset_info?.test_samples || 960} = {accuracy}%
@@ -166,10 +166,10 @@ const Insights = () => {
 
             {/* Steps explanation */}
             <ol style={{ padding: '0 0 0 1.2rem', margin: 0, fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.8 }}>
-              <li><strong style={{ color: 'var(--text-heading)' }}>Data Split:</strong> 4800 rows → 80% train (3840) + 20% test (960)</li>
-              <li><strong style={{ color: 'var(--text-heading)' }}>Feature Scaling:</strong> StandardScaler normalizes N, P, K, temp, humidity, pH, rainfall</li>
-              <li><strong style={{ color: 'var(--text-heading)' }}>Ensemble Training:</strong> XGBoost (200 trees) + Random Forest (200 trees) combined via soft-voting</li>
-              <li><strong style={{ color: 'var(--text-heading)' }}>Evaluation:</strong> Model predicts on the unseen 960 test samples; correct predictions ÷ total = accuracy</li>
+              <li><strong style={{ color: 'var(--text-heading)' }}>{tLocal('Data Split:')}</strong> {tLocal('4800 rows → 80% train (3840) + 20% test (960)')}</li>
+              <li><strong style={{ color: 'var(--text-heading)' }}>{tLocal('Feature Scaling:')}</strong> {tLocal('StandardScaler normalizes N, P, K, temp, humidity, pH, rainfall')}</li>
+              <li><strong style={{ color: 'var(--text-heading)' }}>{tLocal('Ensemble Training:')}</strong> {tLocal('XGBoost (200 trees) + Random Forest (200 trees) combined via soft-voting')}</li>
+              <li><strong style={{ color: 'var(--text-heading)' }}>{tLocal('Evaluation:')}</strong> {tLocal('Model predicts on the unseen 960 test samples; correct predictions ÷ total = accuracy')}</li>
             </ol>
           </div>
         </motion.div>
@@ -178,7 +178,7 @@ const Insights = () => {
         <motion.div {...cardAnim(0.1)} className="glass" style={{ padding: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <Brain size={20} color="#8B5CF6" />
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>Feature Radar</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('Feature Radar')}</h2>
           </div>
           <div style={{ width: '100%', height: 280 }}>
             <ResponsiveContainer>
@@ -186,7 +186,7 @@ const Insights = () => {
                 <PolarGrid stroke="rgba(0,0,0,0.1)" />
                 <PolarAngleAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
                 <PolarRadiusAxis tick={false} axisLine={false} />
-                <Radar name="Importance" dataKey="value" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.25} strokeWidth={2} />
+                <Radar name={tLocal('Importance')} dataKey="value" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.25} strokeWidth={2} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -200,7 +200,7 @@ const Insights = () => {
         <motion.div {...cardAnim(0.15)} className="glass" style={{ padding: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <Layers size={20} color="#3B82F6" />
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>Feature Importance</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('Feature Importance')}</h2>
           </div>
           <div style={{ width: '100%', height: 280 }}>
             <ResponsiveContainer>
@@ -223,7 +223,7 @@ const Insights = () => {
         <motion.div {...cardAnim(0.2)} className="glass" style={{ padding: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <Cpu size={20} color="#F59E0B" />
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>Soil Quality Distribution</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('Soil Quality Distribution')}</h2>
           </div>
           <div style={{ width: '100%', height: 280 }}>
             <ResponsiveContainer>
@@ -237,7 +237,7 @@ const Insights = () => {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          {history.length === 0 && <p style={{ textAlign: 'center', color: '#64748B', fontSize: '0.8rem' }}>Run analyses to populate this chart</p>}
+          {history.length === 0 && <p style={{ textAlign: 'center', color: '#64748B', fontSize: '0.8rem' }}>{tLocal('Run analyses to populate this chart')}</p>}
         </motion.div>
       </div>
 
@@ -246,7 +246,7 @@ const Insights = () => {
         <motion.div {...cardAnim(0.25)} className="glass" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <TrendingUp size={20} color="#10B981" />
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>NPK & pH Trend Across Analyses</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('NPK & pH Trend Across Analyses')}</h2>
           </div>
           <div style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer>
@@ -292,7 +292,7 @@ const Insights = () => {
           <motion.div {...cardAnim(0.3)} className="glass" style={{ padding: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <Sprout size={20} color="#14B8A6" />
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>Top Recommended Crops</h2>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('Top Recommended Crops')}</h2>
             </div>
             <div style={{ width: '100%', height: 280 }}>
               <ResponsiveContainer>
@@ -313,7 +313,7 @@ const Insights = () => {
         <motion.div {...cardAnim(0.35)} className="glass" style={{ padding: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <Layers size={20} color="#EC4899" />
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>Predictable Crop Classes</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)', margin: 0 }}>{tLocal('Predictable Crop Classes')}</h2>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {metrics.classes?.map((cls, i) => (
@@ -332,8 +332,8 @@ const Insights = () => {
           </div>
           <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--surface-alt)', borderRadius: '0.75rem', borderLeft: '3px solid var(--primary)' }}>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
-              <strong style={{ color: 'var(--text-heading)' }}>{metrics.classes?.length || 0}</strong> unique crop types supported by the model.
-              The VotingClassifier combines XGBoost and Random Forest predictions using soft voting for maximum robustness.
+              <strong style={{ color: 'var(--text-heading)' }}>{metrics.classes?.length || 0}</strong> {tLocal('unique crop types supported by the model.')}
+              {tLocal('The VotingClassifier combines XGBoost and Random Forest predictions using soft voting for maximum robustness.')}
             </p>
           </div>
         </motion.div>

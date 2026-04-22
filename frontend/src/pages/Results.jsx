@@ -1,12 +1,12 @@
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sprout, CheckCircle, AlertTriangle, ArrowLeft, Droplets, Thermometer, Cloud, Leaf, TrendingUp, Send, Lightbulb, Target, Printer } from 'lucide-react';
+import { Sprout, CheckCircle, AlertTriangle, ArrowLeft, Droplets, Thermometer, Cloud, Leaf, TrendingUp, Target, Printer, Lightbulb, Send } from 'lucide-react';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useLang } from '../context/LanguageContext';
 
 const Results = () => {
   const location = useLocation();
-  const { t } = useLang();
+  const { t, lang, tLocal } = useLang();
   const { result, input } = location.state || {};
 
   if (!result) return <Navigate to="/app/analyze" />;
@@ -55,7 +55,7 @@ const Results = () => {
       {/* Header Actions */}
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <Link to="/app/analyze" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
-          <ArrowLeft size={16} /> New Analysis
+          <ArrowLeft size={16} /> {tLocal('New Analysis')}
         </Link>
         <button 
           onClick={() => window.print()}
@@ -63,7 +63,7 @@ const Results = () => {
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, color: 'var(--primary)', border: '1px solid var(--primary)', background: 'var(--surface)' }}
         >
           <Printer size={16} />
-          Print / Save PDF
+          {tLocal('Print / Save PDF')}
         </button>
       </div>
 
@@ -82,7 +82,7 @@ const Results = () => {
             </ResponsiveContainer>
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               {soil_quality === 'Good' ? <CheckCircle size={22} color={qualityColor} /> : <AlertTriangle size={22} color={qualityColor} />}
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>Score</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>{tLocal('Score')}</span>
             </div>
           </div>
         </div>
@@ -90,18 +90,18 @@ const Results = () => {
         {/* Quality Text */}
         <div style={{ flex: 1, minWidth: '200px' }}>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.3rem' }}>{t.results_quality}</p>
-          <h1 style={{ fontSize: '2.8rem', fontWeight: 900, color: qualityColor, margin: '0 0 0.5rem 0', lineHeight: 1 }}>{soil_quality}</h1>
+          <h1 style={{ fontSize: '2.8rem', fontWeight: 900, color: qualityColor, margin: '0 0 0.5rem 0', lineHeight: 1 }}>{tLocal(soil_quality)}</h1>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-            {soil_quality === 'Good' ? 'Excellent conditions for high-yield agriculture.' : soil_quality === 'Moderate' ? 'Soil requires targeted amendments for optimal output.' : 'Critical deficiencies detected. Immediate action needed.'}
+            {soil_quality === 'Good' ? tLocal('Excellent conditions for high-yield agriculture.') : soil_quality === 'Moderate' ? tLocal('Soil requires targeted amendments for optimal output.') : tLocal('Critical deficiencies detected. Immediate action needed.')}
           </p>
           {prediction_confidence != null && (
             <span style={{ display: 'inline-block', marginTop: '0.75rem', background: 'rgba(16,185,129,0.1)', color: '#10B981', padding: '0.3rem 0.8rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 700, border: '1px solid rgba(16,185,129,0.2)' }}>
-              Prediction Confidence: {(prediction_confidence * 100).toFixed(1)}%
+              {tLocal('Prediction Confidence')}: {(prediction_confidence * 100).toFixed(1)}%
             </span>
           )}
           {model_accuracy && (
             <span style={{ display: 'inline-block', marginTop: '0.5rem', marginLeft: prediction_confidence != null ? '0.5rem' : '0', background: 'rgba(139,92,246,0.1)', color: '#8B5CF6', padding: '0.3rem 0.8rem', borderRadius: '1rem', fontSize: '0.7rem', fontWeight: 600, border: '1px solid rgba(139,92,246,0.15)' }}>
-              Model Accuracy: {(model_accuracy * 100).toFixed(1)}%
+              {tLocal('Model Accuracy')}: {(model_accuracy * 100).toFixed(1)}%
             </span>
           )}
         </div>
@@ -127,7 +127,7 @@ const Results = () => {
         {radarData.length > 0 && (
           <motion.div {...cardAnim(0.2)} className="glass" style={{ padding: '1.5rem' }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Target size={18} color="#8B5CF6" /> Parameter Profile
+              <Target size={18} color="#8B5CF6" /> {tLocal('Parameter Profile')}
             </h2>
             <div style={{ width: '100%', height: 250 }}>
               <ResponsiveContainer>
@@ -135,7 +135,7 @@ const Results = () => {
                   <PolarGrid stroke="rgba(0,0,0,0.1)" />
                   <PolarAngleAxis dataKey="param" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
                   <PolarRadiusAxis tick={false} axisLine={false} />
-                  <Radar name="Your Soil" dataKey="value" stroke={qualityColor} fill={qualityColor} fillOpacity={0.2} strokeWidth={2} dot={{ r: 3, fill: qualityColor }} />
+                  <Radar name={tLocal('Your Soil')} dataKey="value" stroke={qualityColor} fill={qualityColor} fillOpacity={0.2} strokeWidth={2} dot={{ r: 3, fill: qualityColor }} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -166,10 +166,10 @@ const Results = () => {
                 <div>
                   <span style={{ fontWeight: 700, color: 'var(--text-heading)', textTransform: 'capitalize', fontSize: '1rem' }}>{crop}</span>
                   <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-                    {idx === 0 ? 'Best match for your soil profile' : 'Alternative crop recommendation'}
+                    {idx === 0 ? tLocal('Best match for your soil profile') : tLocal('Alternative crop recommendation')}
                     {crop_confidences && crop_confidences[idx] && (
                       <span style={{ marginLeft: '0.5rem', fontWeight: 700, color: crop_confidences[idx].confidence >= 0.5 ? '#10B981' : crop_confidences[idx].confidence >= 0.2 ? '#F59E0B' : '#EF4444' }}>
-                        ({(crop_confidences[idx].confidence * 100).toFixed(1)}% confidence)
+                        ({(crop_confidences[idx].confidence * 100).toFixed(1)}% {tLocal('confidence')})
                       </span>
                     )}
                   </p>
@@ -203,7 +203,7 @@ const Results = () => {
                 {idx + 1}
               </span>
               <p style={{ fontSize: '0.9rem', color: idx === 0 ? '#92400E' : 'var(--text-muted)', lineHeight: 1.5, margin: 0, fontWeight: idx === 0 ? 600 : 400 }}>
-                {tip}
+                {tLocal(tip)}
               </p>
             </motion.div>
           ))}
@@ -213,13 +213,13 @@ const Results = () => {
       {/* ━━━ ACTION BUTTONS ━━━ */}
       <motion.div {...cardAnim(0.4)} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
         <Link to="/app/analyze" className="btn-primary" style={{ flex: 1, minWidth: '200px', justifyContent: 'center' }}>
-          <ArrowLeft size={16} /> Analyze Again
+          <ArrowLeft size={16} /> {tLocal('Analyze Again')}
         </Link>
         <Link to="/app/communication" className="btn-primary" style={{ flex: 1, minWidth: '200px', justifyContent: 'center', background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', boxShadow: '0 4px 15px rgba(59,130,246,0.3)' }}>
-          <Send size={16} /> SMS to Farmer
+          <Send size={16} /> {tLocal('SMS to Farmer')}
         </Link>
         <Link to="/app/insights" className="btn-primary" style={{ flex: 1, minWidth: '200px', justifyContent: 'center', background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', boxShadow: '0 4px 15px rgba(139,92,246,0.3)' }}>
-          <TrendingUp size={16} /> View Insights
+          <TrendingUp size={16} /> {tLocal('View Insights')}
         </Link>
       </motion.div>
 
