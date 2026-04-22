@@ -519,12 +519,14 @@ function getOfflineResponse(message, context, lang_code) {
     response = t.insights;
     action = 'navigate_insights';
   } else if (msg.includes('sms') || msg.includes('send') || msg.includes('message') || msg.includes('number') || msg.includes('भेज') || msg.includes('पाठव') || msg.includes('அனுப்பு') || msg.includes('পাঠা') || msg.includes('పంపు') || msg.includes('મોકલ') || msg.includes('ಕಳುಹಿಸ') || msg.includes('ਭੇਜ')) {
-    const phoneMatch = msg.match(/(\d{10})/);
+    const cleanedMsg = msg.replace(/[\s\-\.]/g, '');
+    const phoneMatch = cleanedMsg.match(/(\d{7,15})/);
     if (phoneMatch) {
       response = t.sms_sent(phoneMatch[1]);
       action = `send_sms:${phoneMatch[1]}`;
     } else {
       response = t.sms_page;
+      action = 'navigate_communication';
     }
   } else if (msg.includes('hello') || msg.includes('hi') || msg.includes('namaste') || msg.includes('hey') || msg.includes('नमस्ते') || msg.includes('नमस्कार') || msg.includes('வணக்கம்') || msg.includes('নমস্কার') || msg.includes('నమస్కారం') || msg.includes('નમસ્તે') || msg.includes('ನಮಸ್ಕಾರ') || msg.includes('ਸਤ')) {
     response = t.greeting;
@@ -566,8 +568,9 @@ Available actions:
 - "navigate_results": use when they want to see their AI results
 - "navigate_history": use when they want to see their past history or previous readings
 - "navigate_insights": use when they want to see insights or charts
-- "fill_phone:<NUMBER>": use when the user asks you to enter or type their mobile number. Extract the 10-digit number and append it. Example: "fill_phone:9920602745". Note: You are explicitly ALLOWED to handle and extract mobile numbers.
-- "send_sms:<NUMBER>": use when the user asks to send an SMS, send soil report, send analysis, or send results to a phone number. Extract the 10-digit number. This will navigate to the SMS page, fill their number, and auto-attach the latest soil analysis in the message body. Example: "send_sms:9920602745".
+- "navigate_communication": use when they want to go to the SMS or communication page but haven't provided a valid phone number.
+- "fill_phone:<NUMBER>": use when the user asks you to enter or type their mobile number. Extract the number and append it. Example: "fill_phone:9920602745". IMPORTANT: Extract ALL digits with NO SPACES. Do not enforce a 10-digit limit.
+- "send_sms:<NUMBER>": use when the user asks to send an SMS, send soil report, send analysis, or send results to a phone number. Extract the number. IMPORTANT: Extract ALL digits with NO SPACES. Do not enforce a 10-digit limit. Example: "send_sms:9920602745".
 - "none": use for all other queries, questions, or conversations where navigation or filling is not explicitly requested.
 
 You MUST respond with a valid JSON document containing exactly two keys: "response" (your conversational reply in the correct language) and "action" (one of the action enum strings above).

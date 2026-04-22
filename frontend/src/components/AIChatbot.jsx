@@ -74,10 +74,10 @@ const AIChatbot = () => {
         // Navigation and Custom Action Handler
         setTimeout(() => {
           if (action.startsWith('fill_phone:')) {
-            const num = action.split(':')[1];
+            const num = action.split(':')[1]?.replace(/\s/g, '') || '';
             if (num) window.dispatchEvent(new CustomEvent('fill_phone', { detail: num }));
           } else if (action.startsWith('send_sms:')) {
-            const num = action.split(':')[1];
+            const num = action.split(':')[1]?.replace(/\s/g, '') || '';
             navigate('/app/communication');
             // Dispatch after a short delay to let the page mount
             setTimeout(() => {
@@ -91,6 +91,8 @@ const AIChatbot = () => {
             navigate('/app/history');
           } else if (action === 'navigate_insights') {
             navigate('/app/insights');
+          } else if (action === 'navigate_communication') {
+            navigate('/app/communication');
           }
         }, 800); // Slight delay for better UX
       } else {
