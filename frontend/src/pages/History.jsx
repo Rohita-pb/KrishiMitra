@@ -12,7 +12,7 @@ const History = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await axios.get('http://localhost:5005/history');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}http://localhost:5005`);
         setHistory(response.data);
       } catch (error) {
         console.error("Error fetching history", error);
