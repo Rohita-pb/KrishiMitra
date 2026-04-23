@@ -238,14 +238,14 @@ const Analyze = () => {
   };
 
   const parameters = [
-    { name: 'n', label: 'Nitrogen (N)', min: 0, max: 150, unit: 'mg/kg', color: '#10B981', icon: <Leaf size={18} />, hint: 'Essential for leaf growth. Low N causes yellowing.' },
-    { name: 'p', label: 'Phosphorus (P)', min: 0, max: 150, unit: 'mg/kg', color: '#3B82F6', icon: <FlaskConical size={18} />, hint: 'Drives root development and flowering.' },
-    { name: 'k', label: 'Potassium (K)', min: 0, max: 250, unit: 'mg/kg', color: '#F59E0B', icon: <Zap size={18} />, hint: 'Strengthens disease resistance and yield.' },
-    { name: 'ph', label: 'pH Level', min: 0, max: 14, step: 0.1, unit: '', color: '#8B5CF6', icon: <CircleDot size={18} />, hint: '6.0–7.0 is optimal. Affects nutrient absorption.' },
-    { name: 'moisture', label: 'Moisture', min: 0, max: 100, unit: '%', color: '#0EA5E9', icon: <Droplets size={18} />, hint: 'Water retention level in the soil sample.' },
-    { name: 'temperature', label: 'Temperature', min: -10, max: 50, unit: '°C', color: '#EF4444', icon: <Thermometer size={18} />, hint: 'Ambient air temperature at measurement time.' },
-    { name: 'humidity', label: 'Humidity', min: 0, max: 100, unit: '%', color: '#14B8A6', icon: <Cloud size={18} />, hint: 'Relative humidity in the environment.' },
-    { name: 'rainfall', label: 'Rainfall', min: 0, max: 300, unit: 'mm', color: '#6366F1', icon: <CloudRain size={18} />, hint: 'Average rainfall in the region (mm/year).' },
+    { name: 'n', label: t.analyze_nitrogen, min: 0, max: 150, unit: 'mg/kg', color: '#10B981', icon: <Leaf size={18} />, hint: 'Essential for leaf growth. Low N causes yellowing.' },
+    { name: 'p', label: t.analyze_phosphorus, min: 0, max: 150, unit: 'mg/kg', color: '#3B82F6', icon: <FlaskConical size={18} />, hint: 'Drives root development and flowering.' },
+    { name: 'k', label: t.analyze_potassium, min: 0, max: 250, unit: 'mg/kg', color: '#F59E0B', icon: <Zap size={18} />, hint: 'Strengthens disease resistance and yield.' },
+    { name: 'ph', label: t.analyze_ph, min: 0, max: 14, step: 0.1, unit: '', color: '#8B5CF6', icon: <CircleDot size={18} />, hint: '6.0–7.0 is optimal. Affects nutrient absorption.' },
+    { name: 'moisture', label: t.analyze_moisture, min: 0, max: 100, unit: '%', color: '#0EA5E9', icon: <Droplets size={18} />, hint: 'Water retention level in the soil sample.' },
+    { name: 'temperature', label: t.analyze_temperature, min: -10, max: 50, unit: '°C', color: '#EF4444', icon: <Thermometer size={18} />, hint: 'Ambient air temperature at measurement time.' },
+    { name: 'humidity', label: t.analyze_humidity, min: 0, max: 100, unit: '%', color: '#14B8A6', icon: <Cloud size={18} />, hint: 'Relative humidity in the environment.' },
+    { name: 'rainfall', label: t.analyze_rainfall, min: 0, max: 300, unit: 'mm', color: '#6366F1', icon: <CloudRain size={18} />, hint: 'Average rainfall in the region (mm/year).' },
   ];
 
   const getFillPct = (param) => {
@@ -299,7 +299,7 @@ const Analyze = () => {
             >
               {Object.keys(regionPresets).map(key => (
                 <option key={key} value={key} style={{ color: 'var(--text-heading)', background: 'var(--surface)', padding: '8px' }}>
-                  {regionPresets[key].label}
+                  {key === '' ? t.analyze_choose_region : (t[key] || regionPresets[key].label)}
                 </option>
               ))}
             </select>
@@ -401,7 +401,7 @@ const Analyze = () => {
             >
               {Object.keys(cropPresets).map(key => (
                 <option key={key} value={key} style={{ color: 'var(--text-heading)', background: 'var(--surface)', padding: '8px' }}>
-                  {cropPresets[key].label}
+                  {key === '' ? t.analyze_choose_crop : (t[key] || cropPresets[key].label)}
                 </option>
               ))}
             </select>
@@ -496,7 +496,7 @@ const Analyze = () => {
                       <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${param.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: param.color }}>
                         {param.icon}
                       </div>
-                      <span style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '0.92rem' }}>{tLocal(param.label)}</span>
+                      <span style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '0.92rem' }}>{param.label}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                       <span style={{ fontSize: '1.5rem', fontWeight: 900, color: param.color }}>{formData[param.name]}</span>
