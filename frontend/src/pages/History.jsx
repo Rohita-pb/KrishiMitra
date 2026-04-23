@@ -12,7 +12,7 @@ const History = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/history`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/history`);
         setHistory(response.data);
       } catch (error) {
         console.error("Error fetching history", error);

@@ -23,8 +23,8 @@ const Insights = () => {
     const fetchAll = async () => {
       try {
         const [metricsRes, historyRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/metrics`),
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/history`),
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/metrics`),
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/history`),
         ]);
         setMetrics(metricsRes.data);
         setHistory(historyRes.data || []);
