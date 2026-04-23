@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Shield, ArrowRight, Leaf, CheckCircle2, AlertCircle, Loader2, RefreshCw, User, MapPin } from 'lucide-react';
 
-const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:5005'}http://localhost:5005`;
+const API_URL = 'http://localhost:5005';
 
 const Login = () => {
   const navigate = useNavigate();

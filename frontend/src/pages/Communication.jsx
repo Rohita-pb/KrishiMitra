@@ -37,7 +37,7 @@ const Communication = () => {
   useEffect(() => {
     const fetchLatest = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}http://localhost:5005`);
+        const res = await axios.get('http://localhost:5005/history');
         if (res.data && res.data.length > 0) setLastAnalysis(res.data[0]);
       } catch(err) {
         console.error('Failed to fetch history', err);
@@ -139,7 +139,7 @@ const Communication = () => {
     }
     setSmsSending(true);
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}http://localhost:5005`, { 
+      const res = await axios.post('http://localhost:5005/api/send-sms', { 
         phone, 
         message: smsMessage 
       });
@@ -165,7 +165,7 @@ const Communication = () => {
     setWaTyping(true);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}http://localhost:5005`, {
+      const res = await axios.post('http://localhost:5005/api/chat', {
         message: userMsg,
         lang_code: waLang,
         context: lastAnalysis

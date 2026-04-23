@@ -23,8 +23,8 @@ const Insights = () => {
     const fetchAll = async () => {
       try {
         const [metricsRes, historyRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}http://localhost:5005`),
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}http://localhost:5005`),
+          axios.get('http://localhost:5005/metrics'),
+          axios.get('http://localhost:5005/history'),
         ]);
         setMetrics(metricsRes.data);
         setHistory(historyRes.data || []);
