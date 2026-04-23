@@ -227,7 +227,7 @@ const Analyze = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/predict', formData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/predict`, formData);
       navigate('/app/results', { state: { result: response.data, input: formData } });
     } catch (error) {
       console.error(error);

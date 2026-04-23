@@ -61,7 +61,7 @@ const AIChatbot = () => {
     setMicError('');
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/api/chat', {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/api/chat`, {
         message: userMsg,
         lang_code: lang,
         context: latestData

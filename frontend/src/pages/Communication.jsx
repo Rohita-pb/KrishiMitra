@@ -139,13 +139,13 @@ const Communication = () => {
     }
     setSmsSending(true);
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/api/send-sms', { 
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/api/send-sms`, { 
         phone, 
         message: smsMessage 
       });
       
       if (res.data.success) {
-        showToast(`✅ SMS sent successfully! ID: ${res.data.request_id}`, 'success');
+        showToast(`Success: SMS sent successfully! ID: ${res.data.request_id}`, 'success');
       }
     } catch(err) {
       const errMsg = err.response?.data?.error || 'Connection failed. Is the server running?';
@@ -165,7 +165,7 @@ const Communication = () => {
     setWaTyping(true);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/api/chat', {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://krishimitra-backend-wrc0.onrender.com'}/api/chat`, {
         message: userMsg,
         lang_code: waLang,
         context: lastAnalysis
