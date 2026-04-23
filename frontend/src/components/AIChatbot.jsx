@@ -21,7 +21,7 @@ const AIChatbot = () => {
   useEffect(() => {
     const fetchLatest = async () => {
       try {
-        const res = await axios.get('http://localhost:5005/history');
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/history`);
         if (res.data && res.data.length > 0) setLatestData(res.data[0]);
       } catch (err) { }
     };
@@ -61,7 +61,7 @@ const AIChatbot = () => {
     setMicError('');
 
     try {
-      const res = await axios.post('http://localhost:5005/api/chat', {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5005'}/api/chat', {
         message: userMsg,
         lang_code: lang,
         context: latestData
