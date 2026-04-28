@@ -489,7 +489,20 @@ function getOfflineResponse(message, context, lang_code) {
   let response = '';
   let action = 'none';
 
-  if (msg.includes('soil') || msg.includes('mitti') || msg.includes('health') || msg.includes('माती') || msg.includes('मिट्टी') || msg.includes('மண்') || msg.includes('নেটি') || msg.includes('మట్టి') || msg.includes('માટી') || msg.includes('ಮಣ್ಣ') || msg.includes('ਮਿੱਟੀ') || msg.includes('মাটি')) {
+  if (msg.includes('logout') || msg.includes('sign out') || msg.includes('log out') || msg.includes('लॉगआउट') || msg.includes('बाहर') || msg.includes('வெளியேறு')) {
+    response = "Logging you out...";
+    action = 'navigate_logout';
+  } else if (msg.includes('sms') || msg.includes('send') || msg.includes('message') || msg.includes('number') || msg.includes('भेज') || msg.includes('पाठव') || msg.includes('அனுப்பு') || msg.includes('পাঠা') || msg.includes('పంపు') || msg.includes('મોકલ') || msg.includes('ಕಳುಹಿಸ') || msg.includes('ਭੇਜ')) {
+    const cleanedMsg = msg.replace(/[\s\-\.]/g, '');
+    const phoneMatch = cleanedMsg.match(/(\d{7,15})/);
+    if (phoneMatch) {
+      response = t.sms_sent(phoneMatch[1]);
+      action = `send_sms:${phoneMatch[1]}`;
+    } else {
+      response = t.sms_page;
+      action = 'navigate_communication';
+    }
+  } else if (msg.includes('soil') || msg.includes('mitti') || msg.includes('health') || msg.includes('माती') || msg.includes('मिट्टी') || msg.includes('மண்') || msg.includes('নেটি') || msg.includes('మట్టి') || msg.includes('માટી') || msg.includes('ಮಣ್ಣ') || msg.includes('ਮਿੱਟੀ') || msg.includes('মাটি')) {
     if (context && context.soil_quality) {
       response = t.soil_with_data(context);
       action = 'navigate_insights';
@@ -518,16 +531,6 @@ function getOfflineResponse(message, context, lang_code) {
   } else if (msg.includes('insight') || msg.includes('chart') || msg.includes('graph') || msg.includes('चार्ट') || msg.includes('ग्राफ') || msg.includes('வரைபடம்') || msg.includes('চার্ট') || msg.includes('చార్ట') || msg.includes('ચાર્ટ') || msg.includes('ಚಾರ್ಟ') || msg.includes('ਚਾਰਟ')) {
     response = t.insights;
     action = 'navigate_insights';
-  } else if (msg.includes('sms') || msg.includes('send') || msg.includes('message') || msg.includes('number') || msg.includes('भेज') || msg.includes('पाठव') || msg.includes('அனுப்பு') || msg.includes('পাঠা') || msg.includes('పంపు') || msg.includes('મોકલ') || msg.includes('ಕಳುಹಿಸ') || msg.includes('ਭੇਜ')) {
-    const cleanedMsg = msg.replace(/[\s\-\.]/g, '');
-    const phoneMatch = cleanedMsg.match(/(\d{7,15})/);
-    if (phoneMatch) {
-      response = t.sms_sent(phoneMatch[1]);
-      action = `send_sms:${phoneMatch[1]}`;
-    } else {
-      response = t.sms_page;
-      action = 'navigate_communication';
-    }
   } else if (msg.includes('hello') || msg.includes('hi') || msg.includes('namaste') || msg.includes('hey') || msg.includes('नमस्ते') || msg.includes('नमस्कार') || msg.includes('வணக்கம்') || msg.includes('নমস্কার') || msg.includes('నమస్కారం') || msg.includes('નમસ્તે') || msg.includes('ನಮಸ್ಕಾರ') || msg.includes('ਸਤ')) {
     response = t.greeting;
   } else {
@@ -569,6 +572,7 @@ Available actions:
 - "navigate_history": use when they want to see their past history or previous readings
 - "navigate_insights": use when they want to see insights or charts
 - "navigate_communication": use when they want to go to the SMS or communication page but haven't provided a valid phone number.
+- "navigate_logout": use when the user asks to log out, sign out, or exit the application.
 - "fill_phone:<NUMBER>": use when the user asks you to enter or type their mobile number. Extract the number and append it. Example: "fill_phone:9920602745". IMPORTANT: Extract ALL digits with NO SPACES. Do not enforce a 10-digit limit. This applies to ALL languages (e.g., 'mera number 9920602745 hai'). If the number is spoken as words, convert it to digits.
 - "send_sms:<NUMBER>": use when the user asks to send an SMS, send soil report, send analysis, or send results to a phone number. Extract the number. IMPORTANT: Extract ALL digits with NO SPACES. Do not enforce a 10-digit limit. Example: "send_sms:9920602745". This applies to ALL languages (e.g. '9920602745 par sms bhejo', 'is number par report bhej do'). If spoken in words, convert to digits.
 - "none": use for all other queries, questions, or conversations where navigation or filling is not explicitly requested.

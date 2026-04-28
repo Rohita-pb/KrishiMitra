@@ -1,7 +1,7 @@
-fetch('https://krishimitra-backend-wrc0.onrender.com/predict', {
+fetch('https://krishimitra-backend-wrc0.onrender.com/api/send-otp', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ n: "50", p: "25", k: "40", ph: "6.5", moisture: "50", temperature: "25", humidity: "60", rainfall: "100" })
+  body: JSON.stringify({ phone: "9999999999" })
 }).then(async res => {
   console.log('Status:', res.status);
   const text = await res.text();

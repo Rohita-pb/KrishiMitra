@@ -68,7 +68,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Nav */}
-        <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+        <div className="desktop-nav" style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
           {links.map((link) => {
             const isActive = location.pathname === link.path;
             return (
@@ -189,6 +189,25 @@ const Layout = () => {
           <Outlet />
         </motion.main>
       </AnimatePresence>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="mobile-bottom-nav">
+        {[
+          { name: 'Analyze', path: '/app/analyze', icon: <Sprout size={20} /> },
+          { name: 'Results', path: '/app/results', icon: <Activity size={20} /> },
+          { name: 'Insights', path: '/app/insights', icon: <LineChart size={20} /> },
+          { name: 'History', path: '/app/history', icon: <History size={20} /> },
+          { name: 'SMS', path: '/app/communication', icon: <MessageCircle size={20} /> },
+        ].map(link => {
+          const isActive = location.pathname === link.path;
+          return (
+            <Link key={link.path} to={link.path} className={`mobile-nav-link ${isActive ? 'active' : ''}`}>
+              <div className="mobile-nav-icon">{link.icon}</div>
+              <span>{link.name}</span>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 };

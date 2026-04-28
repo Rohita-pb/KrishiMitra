@@ -76,6 +76,11 @@ const AIChatbot = () => {
           if (action.startsWith('fill_phone:')) {
             const num = action.split(':')[1]?.replace(/\s/g, '') || '';
             if (num) window.dispatchEvent(new CustomEvent('fill_phone', { detail: num }));
+          } else if (action === 'navigate_logout') {
+            if (window.confirm("Are you sure you want to log out?")) {
+              localStorage.removeItem('soilai_farmer');
+              navigate('/login', { replace: true });
+            }
           } else if (action.startsWith('send_sms:')) {
             const num = action.split(':')[1]?.replace(/\s/g, '') || '';
             navigate('/app/communication');
