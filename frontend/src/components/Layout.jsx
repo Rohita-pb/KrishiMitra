@@ -67,80 +67,65 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Desktop Nav */}
-        <div className="desktop-nav" style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-          {links.map((link) => {
-            const isActive = location.pathname === link.path;
-            return (
-              <Link key={link.path} to={link.path} style={{
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                padding: '0.5rem 0.9rem',
-                borderRadius: '0.6rem',
-                fontWeight: 700,
-                fontSize: '0.88rem',
-                color: isActive ? 'var(--primary)' : 'var(--text-muted)',
-                background: isActive ? 'rgba(76,175,80,0.08)' : 'transparent',
-                transition: 'all 0.2s',
-                position: 'relative',
-              }}>
-                <span style={{ fontSize: '1rem' }}>{link.emoji}</span>
-                {link.name}
-              </Link>
-            );
-          })}
-
-          {/* Language Selector */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '0.3rem',
-            marginLeft: '0.5rem',
-            background: 'rgba(46,125,50,0.06)',
-            borderRadius: '0.5rem',
-            padding: '0.35rem 0.5rem',
-            border: '1px solid rgba(46,125,50,0.12)',
-          }}>
-            <Globe size={15} color="var(--primary)" />
-            <select
-              value={lang}
-              onChange={(e) => setLang(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--primary)',
-                fontWeight: 700,
-                fontSize: '0.78rem',
-                outline: 'none',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              {langOptions.map(l => (
-                <option key={l.code} value={l.code} style={{ color: '#333' }}>{l.label}</option>
-              ))}
-            </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {/* Desktop Nav */}
+          <div className="desktop-nav" style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+            {links.map((link) => {
+              const isActive = location.pathname === link.path;
+              return (
+                <Link key={link.path} to={link.path} style={{
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.5rem 0.9rem',
+                  borderRadius: '0.6rem',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+                  background: isActive ? 'rgba(76,175,80,0.08)' : 'transparent',
+                  transition: 'all 0.2s',
+                  position: 'relative',
+                }}>
+                  <span style={{ fontSize: '1rem' }}>{link.emoji}</span>
+                  {link.name}
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Farmer name + Logout */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '0.6rem',
-            marginLeft: '0.5rem', paddingLeft: '0.75rem',
-            borderLeft: '1px solid var(--border)',
-          }}>
-            {farmer.name && (
-              <span style={{
-                color: 'var(--text-muted)',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                maxWidth: '120px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
-                🌾 {farmer.name}
-              </span>
-            )}
+          {/* Always Visible Actions (Language & Logout) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {/* Language Selector */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+              background: 'rgba(46,125,50,0.06)',
+              borderRadius: '0.5rem',
+              padding: '0.35rem 0.5rem',
+              border: '1px solid rgba(46,125,50,0.12)',
+            }}>
+              <Globe size={15} color="var(--primary)" />
+              <select
+                value={lang}
+                onChange={(e) => setLang(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--primary)',
+                  fontWeight: 700,
+                  fontSize: '0.78rem',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {langOptions.map(l => (
+                  <option key={l.code} value={l.code} style={{ color: '#333' }}>{l.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Logout */}
             <button
               id="logout-btn"
               onClick={handleLogout}
@@ -149,19 +134,16 @@ const Navbar = () => {
                 background: '#FFF5F5',
                 border: '1px solid #FECACA',
                 borderRadius: '0.5rem',
-                padding: '0.4rem 0.65rem',
+                padding: '0.4rem',
                 color: '#DC2626',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.3rem',
-                fontSize: '0.8rem',
-                fontWeight: 700,
+                justifyContent: 'center',
                 transition: 'all 0.2s',
-                fontFamily: 'inherit',
               }}
             >
-              <LogOut size={14} /> {t.nav_logout}
+              <LogOut size={16} />
             </button>
           </div>
         </div>
