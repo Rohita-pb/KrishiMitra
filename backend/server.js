@@ -43,14 +43,17 @@ app.post('/predict', async (req, res) => {
 
     // 3. Insert into predictions
     const insertPredictionQuery = `
-      INSERT INTO predictions (soil_id, soil_quality, recommended_crops, improvement_tips)
-      VALUES ($1, $2, $3, $4) RETURNING id;
+      INSERT INTO predictions (soil_id, soil_quality, recommended_crops, improvement_tips, prediction_confidence, crop_confidences, model_accuracy)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;
     `;
     await pool.query(insertPredictionQuery, [
       soilId,
       soil_quality,
       JSON.stringify(recommended_crops),
-      JSON.stringify(improvement_tips)
+      JSON.stringify(improvement_tips),
+      prediction_confidence,
+      JSON.stringify(crop_confidences),
+      model_accuracy
     ]);
 
     // 4. Return the required output
@@ -152,7 +155,8 @@ app.get('/history', async (req, res) => {
       SELECT 
         p.id as prediction_id,
         s.n, s.p, s.k, s.ph, s.moisture, s.temperature, s.humidity, s.rainfall,
-        p.soil_quality, p.recommended_crops, p.improvement_tips, p.created_at
+        p.soil_quality, p.recommended_crops, p.improvement_tips, 
+        p.prediction_confidence, p.crop_confidences, p.model_accuracy, p.created_at
       FROM predictions p
       JOIN soil_data s ON p.soil_id = s.id
       ORDER BY p.created_at DESC

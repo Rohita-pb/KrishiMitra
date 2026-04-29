@@ -41,6 +41,9 @@ const initDB = async () => {
         soil_quality VARCHAR(50) NOT NULL,
         recommended_crops JSONB NOT NULL,
         improvement_tips JSONB NOT NULL,
+        prediction_confidence FLOAT,
+        crop_confidences JSONB,
+        model_accuracy FLOAT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

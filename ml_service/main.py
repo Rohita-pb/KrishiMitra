@@ -15,7 +15,7 @@ scaler = None
 encoder = None
 metrics_data = None
 
-def print_separator(title="", char="━", width=80):
+def print_separator(title="", char="-", width=80):
     if title:
         pad = (width - len(title) - 2) // 2
         print(f"\n{char * pad} {title} {char * pad}")
@@ -25,23 +25,23 @@ def print_separator(title="", char="━", width=80):
 def print_startup_metrics():
     """Print comprehensive model metrics when the ML service starts."""
     if not metrics_data:
-        print("⚠  No metrics found. Train the model first!")
+        print("[WARNING] No metrics found. Train the model first!")
         return
 
-    print_separator("SOILAI ML SERVICE — MODEL METRICS", "═")
+    print_separator("SOILAI ML SERVICE - MODEL METRICS", "=")
     
     # Overall accuracy
     acc = metrics_data.get("accuracy", 0)
-    print(f"\n  🎯 Overall Accuracy:     {acc * 100:.2f}%")
-    print(f"  📈 Macro Precision:      {metrics_data.get('macro_precision', 0) * 100:.2f}%")
-    print(f"  📈 Macro Recall:         {metrics_data.get('macro_recall', 0) * 100:.2f}%")
-    print(f"  📈 Macro F1-Score:       {metrics_data.get('macro_f1', 0) * 100:.2f}%")
-    print(f"  📈 Weighted F1-Score:    {metrics_data.get('weighted_f1', 0) * 100:.2f}%")
+    print(f"\n  [*] Overall Accuracy:     {acc * 100:.2f}%")
+    print(f"  [*] Macro Precision:      {metrics_data.get('macro_precision', 0) * 100:.2f}%")
+    print(f"  [*] Macro Recall:         {metrics_data.get('macro_recall', 0) * 100:.2f}%")
+    print(f"  [*] Macro F1-Score:       {metrics_data.get('macro_f1', 0) * 100:.2f}%")
+    print(f"  [*] Weighted F1-Score:    {metrics_data.get('weighted_f1', 0) * 100:.2f}%")
     
     # Dataset info
     ds = metrics_data.get("dataset_info", {})
-    print(f"\n  📊 Dataset: {ds.get('total_samples', '?')} samples, {ds.get('total_crops', '?')} crops")
-    print(f"  🔧 Train: {ds.get('train_samples', '?')} | Test: {ds.get('test_samples', '?')}")
+    print(f"\n  [Data] Dataset: {ds.get('total_samples', '?')} samples, {ds.get('total_crops', '?')} crops")
+    print(f"  [Cfg] Train: {ds.get('train_samples', '?')} | Test: {ds.get('test_samples', '?')}")
     
     # Per-class metrics
     per_class = metrics_data.get("per_class_metrics", {})
@@ -54,11 +54,11 @@ def print_startup_metrics():
         for cls, m in sorted_classes:
             f1 = m.get('f1_score', 0)
             if f1 >= 0.95:
-                status = "✅"
+                status = "[OK]"
             elif f1 >= 0.80:
-                status = "⚠️"
+                status = "[WARN]"
             else:
-                status = "❌"
+                status = "[FAIL]"
             print(f"  {status} {cls:<18} {m.get('precision',0):>8.2%} {m.get('recall',0):>8.2%} {f1:>8.2%} {m.get('support',0):>8}")
     
     # Confusion matrix summary — just show misclassifications
@@ -72,19 +72,19 @@ def print_startup_metrics():
             for j in range(len(classes)):
                 if i != j and cm_np[i][j] > 0:
                     found = True
-                    print(f"  ⚠  {classes[i]:<20} → {classes[j]:<20} ({cm_np[i][j]} samples)")
+                    print(f"  [!] {classes[i]:<20} -> {classes[j]:<20} ({cm_np[i][j]} samples)")
         if not found:
-            print("  ✅ No misclassifications in test set!")
+            print("  [OK] No misclassifications in test set!")
     
     # Feature importance
     fi = metrics_data.get("feature_importance", {})
     if fi:
         print_separator("FEATURE IMPORTANCE")
         for feat, imp in sorted(fi.items(), key=lambda x: -x[1]):
-            bar = '█' * int(imp * 50)
+            bar = '#' * int(imp * 50)
             print(f"  {feat:>12}: {imp:.4f} {bar}")
     
-    print_separator("SERVICE READY — Predictions use real predict_proba confidence", "═")
+    print_separator("SERVICE READY - Predictions use real predict_proba confidence", "=")
     print()
 
 # Load models and metrics on startup
@@ -98,17 +98,17 @@ def load_models():
     
     if os.path.exists(model_path):
         model = joblib.load(model_path)
-        print("✅ Model loaded.")
+        print("[OK] Model loaded.")
     if os.path.exists(scaler_path):
         scaler = joblib.load(scaler_path)
-        print("✅ Scaler loaded.")
+        print("[OK] Scaler loaded.")
     if os.path.exists(encoder_path):
         encoder = joblib.load(encoder_path)
-        print("✅ Label encoder loaded.")
+        print("[OK] Label encoder loaded.")
     if os.path.exists(metrics_path):
         with open(metrics_path, "r") as f:
             metrics_data = json.load(f)
-        print("✅ Metrics loaded.")
+        print("[OK] Metrics loaded.")
     
     # Print full metrics summary to terminal
     print_startup_metrics()
@@ -203,23 +203,23 @@ def predict_crop(data: SoilInput):
     ]
     
     # Log the prediction to terminal for debugging
-    print(f"\n{'─'*60}")
-    print(f"📥 PREDICTION REQUEST")
+    print(f"\n{'-'*60}")
+    print(f"[REQ] PREDICTION REQUEST")
     print(f"   Input: N={data.n}, P={data.p}, K={data.k}, pH={data.ph}, Temp={data.temperature}, Humidity={data.humidity}, Rainfall={data.rainfall}")
-    print(f"   🌱 Top Crop: {best_crops[0]} ({top_1_confidence*100:.1f}% confidence)")
-    print(f"   🌾 2nd Crop: {best_crops[1]} ({top_2_confidence*100:.1f}% confidence)")
-    print(f"   📊 Soil Quality: {quality}")
+    print(f"   [1] Top Crop: {best_crops[0]} ({top_1_confidence*100:.1f}% confidence)")
+    print(f"   [2] 2nd Crop: {best_crops[1]} ({top_2_confidence*100:.1f}% confidence)")
+    print(f"   [INFO] Soil Quality: {quality}")
     
     # Show top 5 probabilities for deeper insight
     top_5_indices = top_indices[:5]
     top_5_crops = encoder.inverse_transform(top_5_indices).tolist()
-    print(f"   📈 Top 5 predictions:")
+    print(f"   [Stats] Top 5 predictions:")
     for idx, crop_idx in enumerate(top_5_indices):
         crop_name = encoder.inverse_transform([crop_idx])[0]
         prob = probs[crop_idx]
-        bar = '█' * int(prob * 30)
+        bar = '#' * int(prob * 30)
         print(f"      {idx+1}. {crop_name:<18} {prob*100:>6.2f}% {bar}")
-    print(f"{'─'*60}")
+    print(f"{'-'*60}")
     
     # If soil is good, suggest high yield, else limit crops or suggest robust ones
     if quality == "Poor":
