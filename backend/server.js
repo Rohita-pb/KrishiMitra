@@ -99,7 +99,48 @@ app.post('/predict', async (req, res) => {
   }
 });
 
-// REAL SMS — Fast2SMS API (No simulation)
+// TEMPORARY DEBUG — Remove after fixing
+app.get('/debug-db', async (req, res) => {
+  const steps = [];
+  try {
+    // Step 1: Check DB connection and tables
+    const tableCheck = await pool.query(`SELECT MAX(id) as max_soil FROM soil_data`);
+    steps.push({ step: 'soil_data_max_id', result: tableCheck.rows[0] });
+
+    const predCheck = await pool.query(`SELECT MAX(id) as max_pred FROM predictions`);
+    steps.push({ step: 'predictions_max_id', result: predCheck.rows[0] });
+
+    // Step 2: Check predictions table columns
+    const colCheck = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'predictions' ORDER BY ordinal_position`);
+    steps.push({ step: 'predictions_columns', result: colCheck.rows.map(r => r.column_name) });
+
+    // Step 3: Test insert into soil_data
+    const soilInsert = await pool.query(
+      `INSERT INTO soil_data (n, p, k, ph, moisture, temperature, humidity, rainfall) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+      [70, 35, 45, 6.5, 55, 26, 65, 110]
+    );
+    const testSoilId = soilInsert.rows[0].id;
+    steps.push({ step: 'soil_insert_ok', soil_id: testSoilId });
+
+    // Step 4: Test insert into predictions
+    const predInsert = await pool.query(
+      `INSERT INTO predictions (soil_id, soil_quality, recommended_crops, improvement_tips, prediction_confidence, crop_confidences, model_accuracy) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+      [testSoilId, 'Moderate', JSON.stringify(['chilli','onion']), JSON.stringify(['Low K tip']), 0.63, JSON.stringify([{crop:'chilli',confidence:0.63}]), 0.96]
+    );
+    steps.push({ step: 'prediction_insert_ok', prediction_id: predInsert.rows[0].id });
+
+    // Step 5: Cleanup test data
+    await pool.query(`DELETE FROM predictions WHERE id = $1`, [predInsert.rows[0].id]);
+    await pool.query(`DELETE FROM soil_data WHERE id = $1`, [testSoilId]);
+    steps.push({ step: 'cleanup_ok' });
+
+    res.json({ status: 'ALL OK', steps, env_ml_url: process.env.ML_SERVICE_URL || 'NOT SET (using default)', db_url_prefix: (process.env.DATABASE_URL || '').substring(0, 40) + '...' });
+  } catch (err) {
+    res.status(500).json({ status: 'FAILED', steps, error: err.message, code: err.code });
+  }
+});
+
+
 app.post('/api/send-sms', async (req, res) => {
   try {
     const { phone, message } = req.body;
