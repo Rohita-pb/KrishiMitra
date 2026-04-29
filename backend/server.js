@@ -227,7 +227,7 @@ app.get('/history', async (req, res) => {
         p.prediction_confidence, p.crop_confidences, p.model_accuracy, p.created_at
       FROM predictions p
       JOIN soil_data s ON p.soil_id = s.id
-      ORDER BY p.created_at DESC
+      ORDER BY p.id DESC
       LIMIT 50;
     `;
     const result = await pool.query(query);
