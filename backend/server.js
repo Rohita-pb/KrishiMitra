@@ -42,7 +42,7 @@ app.post('/predict', async (req, res) => {
     } catch (mlErr) {
       // ML service unavailable — use built-in rule-based fallback
       console.log(`[FALLBACK] ML service unreachable (${mlErr.message}), using rule-based prediction.`);
-      const improvement_tips = [];
+      improvement_tips = [];
       let issues = 0;
 
       if (n < 50) { improvement_tips.push("Low Nitrogen: Add Nitrogen-rich fertilizers like Urea."); issues++; }
