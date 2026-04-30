@@ -40,6 +40,7 @@ const Results = () => {
     { label: 'Potassium (K)', value: input.k, icon: <TrendingUp size={18} />, color: '#F59E0B' },
     { label: 'pH Level', value: input.ph, icon: <Target size={18} />, color: '#8B5CF6' },
     { label: 'Temperature', value: `${input.temperature}°C`, icon: <Thermometer size={18} />, color: '#EF4444' },
+    { label: 'Moisture', value: `${input.moisture || 0}%`, icon: <Droplets size={18} />, color: '#0EA5E9' },
     { label: 'Humidity', value: `${input.humidity}%`, icon: <Cloud size={18} />, color: '#14B8A6' },
   ] : [];
 
